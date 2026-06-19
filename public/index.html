@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RiskQ — Company Regulation Scope Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#022672;--navy70:#4e72be;--navy40:#9bbfff;--darknavy:#000026;
+  --slate:#8093BC;--slate70:#ccdfff;--slatedark:#344770;
+  --purple:#522F9E;--purple70:#9e7bea;--purplelight:#ebcbff;
+  --green:#465545;--greenlight:#dfeede;--gray:#858585;--graylt:#d1d1d1;
+  --font-h:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --font-b:'Barlow','Calibri',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13px;}
+
+/* HEADER */
+.hdr{background:var(--navy);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-logo{font-family:var(--font-h);font-size:22px;font-weight:700;letter-spacing:1px;}
+.hdr-logo em{color:var(--purple70);font-style:normal;}
+.hdr-sub{font-size:11px;color:var(--slate);margin-top:2px;}
+.hdr-right{font-size:11px;color:var(--slate);text-align:right;}
+
+/* KEY SETUP BANNER */
+.key-banner{background:#fef3c7;border-bottom:2px solid #f59e0b;padding:8px 24px;font-size:12px;color:#78350f;display:flex;align-items:center;gap:16px;}
+.key-banner input{border:1px solid #f59e0b;border-radius:4px;padding:4px 8px;font-size:12px;width:260px;font-family:var(--font-b);}
+.key-banner .kb-save{background:#f59e0b;color:#fff;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:var(--font-h);font-weight:700;}
+.key-banner.hidden{display:none;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - 80px);}
+
+/* FORM PANEL */
+.fp{background:#fff;border-right:1px solid var(--slate70);overflow-y:auto;padding:16px;}
+.fp-title{font-family:var(--font-h);font-size:15px;font-weight:700;border-bottom:3px solid var(--purple);padding-bottom:6px;margin-bottom:12px;}
+.name-row{display:flex;gap:6px;margin-bottom:10px;}
+.name-row input{flex:1;border:1px solid var(--graylt);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--navy);font-family:var(--font-b);}
+.name-row input:focus{outline:none;border-color:var(--navy70);}
+.btn-lookup{background:var(--purple);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-family:var(--font-h);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.btn-lookup:hover{background:var(--purple70);}
+.btn-lookup:disabled{background:var(--graylt);cursor:not-allowed;}
+.lookup-status{font-size:11px;padding:5px 8px;border-radius:5px;margin-bottom:10px;display:none;}
+.lookup-status.loading{background:#fef3c7;color:#78350f;display:block;}
+.lookup-status.done{background:var(--greenlight);color:var(--green);display:block;}
+.lookup-status.err{background:#fee2e2;color:#b91c1c;display:block;}
+.source-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px;font-weight:600;}
+.src-auto{background:var(--purplelight);color:var(--purple);}
+.src-manual{background:var(--slate70);color:var(--slatedark);}
+.sec-lbl{font-family:var(--font-h);font-size:11px;font-weight:700;color:var(--slatedark);text-transform:uppercase;letter-spacing:.5px;background:#f5f7ff;border-radius:4px;padding:4px 8px;margin:12px 0 8px;}
+.field{margin-bottom:10px;}
+.field label{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.field input,.field select{width:100%;border:1px solid var(--graylt);border-radius:5px;padding:7px 9px;font-size:12px;color:var(--navy);font-family:var(--font-b);background:#fff;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--navy70);}
+.field select[multiple]{height:80px;}
+.field.auto-filled input,.field.auto-filled select{border-color:var(--purple70);background:var(--purplelight);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.hint{font-size:10px;color:var(--gray);margin-top:2px;}
+.btn-run{width:100%;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:11px;font-family:var(--font-h);font-size:15px;font-weight:700;cursor:pointer;margin-top:10px;transition:background .15s;}
+.btn-run:hover{background:var(--navy70);}
+.btn-clear{width:100%;background:transparent;color:var(--gray);border:1px solid var(--graylt);border-radius:6px;padding:7px;font-size:12px;cursor:pointer;margin-top:4px;}
+.btn-clear:hover{border-color:var(--slate);color:var(--navy);}
+
+/* RESULTS */
+.rp{overflow-y:auto;padding:16px 20px;}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:80%;color:var(--gray);text-align:center;gap:10px;}
+.empty .ico{font-size:48px;opacity:.25;}
+.co-card{background:var(--navy);color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:14px;}
+.co-name{font-family:var(--font-h);font-size:22px;font-weight:700;border-bottom:1px solid var(--slatedark);padding-bottom:8px;margin-bottom:10px;}
+.co-stats{display:flex;flex-wrap:wrap;gap:14px;}
+.co-stat .v{font-family:var(--font-h);font-size:18px;font-weight:700;}
+.co-stat .l{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+.sum-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sum-box{border-radius:7px;padding:10px 14px;flex:1;min-width:80px;text-align:center;}
+.sum-box .n{font-family:var(--font-h);font-size:26px;font-weight:700;}
+.sum-box .l{font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+.s-total{background:var(--navy);color:#fff;}
+.s-in{background:var(--greenlight);color:var(--green);}
+.s-watch{background:#fef3c7;color:#78350f;}
+.s-out{background:#fee2e2;color:#b91c1c;}
+.grp-hdr{background:var(--slatedark);color:#fff;border-radius:6px;padding:7px 14px;margin:14px 0 8px;font-family:var(--font-h);font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.grp-counts{margin-left:auto;font-size:11px;font-weight:400;opacity:.75;}
+.rc{background:#fff;border-radius:7px;margin-bottom:7px;border-left:5px solid var(--graylt);box-shadow:0 1px 3px rgba(0,0,38,.07);overflow:hidden;}
+.rc.in{border-left-color:var(--green);}
+.rc.watch{border-left-color:#f59e0b;}
+.rc.out{border-left-color:var(--graylt);}
+.rc-head{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;}
+.rc-head:hover{background:#f9faff;}
+.rc-acr{font-family:var(--font-h);font-size:16px;font-weight:700;min-width:80px;color:var(--navy);}
+.rc-info{flex:1;}
+.rc-name{font-size:12px;font-weight:600;color:var(--navy);}
+.rc-jur{font-size:10px;color:var(--gray);}
+.pill{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;}
+.p-in{background:var(--greenlight);color:var(--green);}
+.p-watch{background:#fef3c7;color:#78350f;}
+.p-out{background:#f3f4f6;color:#6b7280;}
+.rc-toggle{font-size:11px;color:var(--gray);transition:transform .2s;}
+.rc.open .rc-toggle{transform:rotate(180deg);}
+.rc-body{display:none;border-top:1px solid #eef0f8;padding:12px 14px;}
+.rc.open .rc-body{display:block;}
+.tt{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px;}
+.tt th{background:var(--navy);color:#fff;padding:5px 8px;text-align:left;font-family:var(--font-h);font-size:11px;}
+.tt td{padding:6px 8px;border-bottom:1px solid #eef0f8;vertical-align:middle;}
+.tt tr:last-child td{border-bottom:none;}
+.tt tr:nth-child(even) td{background:#f9faff;}
+.t-pass{color:var(--green);font-weight:700;}
+.t-fail{color:#b91c1c;font-weight:700;}
+.sla-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.sla-item{background:#f5f7ff;border-radius:4px;padding:6px 8px;font-size:11px;}
+.sla-item .sl{font-weight:700;color:var(--navy);margin-bottom:1px;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.chip{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--slate70);color:var(--navy);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:5px;vertical-align:middle;}
+@media print{.fp,.hdr,.key-banner{display:none;}.layout{display:block;}.rp{padding:0;}.rc-body{display:block!important;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Company Regulation Scope Analyzer</span></div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 22 global regulations</div>
+  </div>
+  <div class="hdr-right">Powered by Claude AI · RiskQ</div>
+</div>
+
+<!-- API KEY SETUP BANNER — hidden once key is saved -->
+<div class="key-banner" id="key-banner">
+  ⚠ Enter your Lookup Secret Key to enable Auto-Lookup:
+  <input type="password" id="key-input" placeholder="Paste your LOOKUP_SECRET here"/>
+  <button class="kb-save" onclick="saveKey()">Save</button>
+  <span style="opacity:.7">This is stored only in your browser session.</span>
+</div>
+
+<div class="layout">
+  <div class="fp">
+    <div class="fp-title">Company Profile</div>
+    <div class="field"><label>Company Name *</label></div>
+    <div class="name-row">
+      <input type="text" id="f-name" placeholder="e.g. Bank of New York, Aetna, Salesforce…" oninput="clearAutoFill()"/>
+      <button class="btn-lookup" id="btn-lookup" onclick="autoLookup()">🔍 Auto-Lookup</button>
+    </div>
+    <div class="lookup-status" id="lookup-status"></div>
+
+    <div class="sec-lbl">📊 Financial &amp; Scale</div>
+    <div class="field-row">
+      <div class="field" id="field-rev">
+        <label>Annual Revenue ($M) *<span class="source-badge src-manual" id="badge-rev">manual</span></label>
+        <input type="number" id="f-rev" placeholder="e.g. 50" min="0"/>
+        <div class="hint">Total annual gross revenue</div>
+      </div>
+      <div class="field" id="field-ds">
+        <label>% Revenue from Data Sales<span class="source-badge src-manual" id="badge-ds">manual</span></label>
+        <input type="number" id="f-datasale" placeholder="e.g. 0" min="0" max="100"/>
+      </div>
+    </div>
+    <div class="field" id="field-cons">
+      <label>Consumers / Data Subjects<span class="source-badge src-manual" id="badge-cons">manual</span></label>
+      <input type="number" id="f-consumers" placeholder="e.g. 150000" min="0"/>
+      <div class="hint">Total individuals whose data you process</div>
+    </div>
+
+    <div class="sec-lbl">🏭 Industry</div>
+    <div class="field" id="field-ind">
+      <label>Primary Industry *<span class="source-badge src-manual" id="badge-ind">manual</span></label>
+      <select id="f-industry">
+        <option value="">Select industry…</option>
+        <option value="healthcare">Healthcare / Health Insurance</option>
+        <option value="financial">Financial Services / Banking</option>
+        <option value="insurance">Insurance</option>
+        <option value="education">Education</option>
+        <option value="defense">Defense / Government Contractor</option>
+        <option value="retail">Retail / E-commerce</option>
+        <option value="tech">Technology / SaaS</option>
+        <option value="telecom">Telecommunications</option>
+        <option value="media">Media / Advertising</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="sec-lbl">🗺 US Jurisdiction</div>
+    <div class="field" id="field-states">
+      <label>Operating US States<span class="source-badge src-manual" id="badge-states">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi)</span></label>
+      <select id="f-states" multiple>
+        <option value="ALL">All States / National</option>
+        <option value="CA">California</option><option value="CO">Colorado</option>
+        <option value="VA">Virginia</option><option value="NY">New York</option>
+        <option value="CT">Connecticut</option><option value="DE">Delaware</option>
+        <option value="MA">Massachusetts</option><option value="OH">Ohio</option>
+        <option value="IN">Indiana</option><option value="AL">Alabama</option>
+        <option value="LA">Louisiana</option><option value="ME">Maine</option>
+        <option value="MI">Michigan</option><option value="MS">Mississippi</option>
+        <option value="ND">North Dakota</option><option value="NH">New Hampshire</option>
+        <option value="SC">South Carolina</option><option value="TX">Texas</option>
+        <option value="FL">Florida</option><option value="MT">Montana</option>
+        <option value="OR">Oregon</option><option value="TN">Tennessee</option>
+        <option value="UT">Utah</option><option value="IA">Iowa</option>
+      </select>
+    </div>
+
+    <div class="sec-lbl">🌍 International Markets</div>
+    <div class="field" id="field-intl">
+      <label>Countries / Regions<span class="source-badge src-manual" id="badge-intl">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi)</span></label>
+      <select id="f-intl" multiple>
+        <option value="EU">EU / EEA</option><option value="UK">United Kingdom</option>
+        <option value="Canada">Canada</option><option value="Australia">Australia</option>
+        <option value="Brazil">Brazil</option><option value="India">India</option>
+        <option value="Japan">Japan</option><option value="China">China</option>
+        <option value="SouthKorea">South Korea</option><option value="Thailand">Thailand</option>
+        <option value="NewZealand">New Zealand</option><option value="Israel">Israel</option>
+      </select>
+    </div>
+
+    <div class="sec-lbl">🗄 Data Types Processed</div>
+    <div class="field" id="field-data">
+      <label>Select all that apply<span class="source-badge src-manual" id="badge-data">manual</span></label>
+      <select id="f-data" multiple>
+        <option value="PII">PII (Personal Identifiable Info)</option>
+        <option value="PHI">PHI (Health Information)</option>
+        <option value="Financial">Financial / Account Data</option>
+        <option value="Student">Student Records</option>
+        <option value="CardData">Payment Card Data</option>
+        <option value="Employee">Employee Data</option>
+        <option value="Sensitive">Sensitive Personal Data</option>
+        <option value="CUI">Controlled Unclassified Info</option>
+      </select>
+    </div>
+
+    <button class="btn-run" onclick="runAnalysis()">⚖️ Analyze Regulatory Scope</button>
+    <button class="btn-clear" onclick="clearAll()">Clear</button>
+  </div>
+
+  <div class="rp" id="results-panel">
+    <div class="empty">
+      <div class="ico">⚖️</div>
+      <p><strong>Enter a company name and click Auto-Lookup</strong><br>to pull revenue, industry &amp; geography automatically.</p>
+      <p style="font-size:12px;color:var(--gray);max-width:320px;margin-top:6px">Then click Analyze to see which regulations apply and exactly which thresholds trigger them.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── API KEY MANAGEMENT ───────────────────────────────────────────────────────
+let LOOKUP_SECRET = sessionStorage.getItem('rq_lookup_secret') || '';
+
+(function initKey(){
+  if(LOOKUP_SECRET) document.getElementById('key-banner').classList.add('hidden');
+})();
+
+function saveKey(){
+  const k = document.getElementById('key-input').value.trim();
+  if(!k){ alert('Enter a key first.'); return; }
+  LOOKUP_SECRET = k;
+  sessionStorage.setItem('rq_lookup_secret', k);
+  document.getElementById('key-banner').classList.add('hidden');
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function sel(id){return[...document.getElementById(id).options].filter(o=>o.selected).map(o=>o.value);}
+function fmtN(n){return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(0)+'K':String(n);}
+function setStatus(msg,cls){const el=document.getElementById('lookup-status');el.textContent=msg;el.className='lookup-status '+cls;}
+function markAuto(fId,bId){
+  document.getElementById(fId).classList.add('auto-filled');
+  const b=document.getElementById(bId);b.textContent='auto';b.className='source-badge src-auto';
+}
+function clearAutoFill(){
+  ['field-rev','field-ds','field-cons','field-ind','field-states','field-intl','field-data']
+    .forEach(id=>document.getElementById(id)?.classList.remove('auto-filled'));
+  ['badge-rev','badge-ds','badge-cons','badge-ind','badge-states','badge-intl','badge-data']
+    .forEach(id=>{const b=document.getElementById(id);if(b){b.textContent='manual';b.className='source-badge src-manual';}});
+  document.getElementById('lookup-status').className='lookup-status';
+}
+
+// ── AUTO-LOOKUP via /api/lookup ──────────────────────────────────────────────
+async function autoLookup(){
+  const name = document.getElementById('f-name').value.trim();
+  if(!name){ alert('Enter a company name first.'); return; }
+  if(!LOOKUP_SECRET){
+    setStatus('Enter your Lookup Secret Key in the banner above first.','err');
+    return;
+  }
+  const btn = document.getElementById('btn-lookup');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Looking up…';
+  setStatus('Searching for ' + name + '…', 'loading');
+
+  try {
+    const resp = await fetch('/api/lookup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': LOOKUP_SECRET
+      },
+      body: JSON.stringify({ company_name: name })
+    });
+
+    if(!resp.ok){
+      const err = await resp.json().catch(()=>({error: resp.statusText}));
+      throw new Error(err.error || resp.statusText);
+    }
+
+    const data = await resp.json();
+
+    // Populate form fields
+    if(data.revenue_millions != null){ document.getElementById('f-rev').value = Math.round(data.revenue_millions); markAuto('field-rev','badge-rev'); }
+    if(data.data_sale_pct != null){ document.getElementById('f-datasale').value = data.data_sale_pct; markAuto('field-ds','badge-ds'); }
+    if(data.consumers_estimate != null){ document.getElementById('f-consumers').value = Math.round(data.consumers_estimate); markAuto('field-cons','badge-cons'); }
+    if(data.industry){ document.getElementById('f-industry').value = data.industry; markAuto('field-ind','badge-ind'); }
+    if(data.us_states?.length){
+      const s = document.getElementById('f-states');
+      [...s.options].forEach(o=>o.selected=data.us_states.includes(o.value));
+      markAuto('field-states','badge-states');
+    }
+    if(data.international?.length){
+      const s = document.getElementById('f-intl');
+      [...s.options].forEach(o=>o.selected=data.international.includes(o.value));
+      markAuto('field-intl','badge-intl');
+    }
+    if(data.data_types?.length){
+      const s = document.getElementById('f-data');
+      [...s.options].forEach(o=>o.selected=data.data_types.includes(o.value));
+      markAuto('field-data','badge-data');
+    }
+
+    const rev = data.revenue_millions ? '$' + Math.round(data.revenue_millions) + 'M · ' : '';
+    const note = data.notes ? ' · ' + data.notes : '';
+    setStatus('✓ Found: ' + rev + (data.industry_notes || data.industry || '') + note, 'done');
+    btn.disabled = false; btn.innerHTML = '🔍 Auto-Lookup';
+    runAnalysis();
+
+  } catch(e) {
+    setStatus('Error: ' + e.message, 'err');
+    btn.disabled = false; btn.innerHTML = '🔍 Auto-Lookup';
+  }
+}
+
+// ── REGULATION DATA ──────────────────────────────────────────────────────────
+const REGS=[
+  {group:'US Federal',acronym:'FTC Act',name:'Federal Trade Commission Act',jur:'Federal (USA)',
+   penalties:'Civil: $Billions — unfair/deceptive data practices',notif:'72 hrs',resp:'N/A',cure:'N/A',
+   obls:['Data breach notification','Data security requirements','Privacy notice','Avoid secondary use','Vendor program'],
+   logic:'always',tests:[{type:'always',label:'Applies to all US companies conducting commercial activity',req:'Universal',pass:()=>true}]},
+  {group:'US Federal',acronym:'HIPAA',name:'Health Insurance Portability and Accountability Act',jur:'Federal (USA)',
+   penalties:'Civil: $100–$50,000/violation; Criminal: up to 10 yrs',notif:'60 days',resp:'30 days',cure:'N/A',
+   obls:['PHI safeguards','Business Associate Agreements','Breach notification','Access controls','Privacy notice'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Healthcare / health insurance entity',req:'healthcare',pass:c=>c.industry==='healthcare'},
+     {type:'datatype',label:'Processes PHI (Protected Health Information)',req:'PHI data type',pass:c=>c.dataTypes.includes('PHI')||c.industry==='healthcare'}]},
+  {group:'US Federal',acronym:'GLBA',name:'Gramm-Leach-Bliley Act',jur:'Federal (USA)',
+   penalties:'Civil: Hundreds of millions',notif:'72 hrs',resp:'N/A',cure:'N/A',
+   obls:['Safeguard customer NPI','Privacy notice','Opt-out of data sharing','Vendor program'],
+   logic:'OR',tests:[{type:'industry',label:'Financial institution (banking, lending, investment)',req:'financial / insurance',pass:c=>['financial','insurance'].includes(c.industry)}]},
+  {group:'US Federal',acronym:'FERPA',name:'Family Educational Rights and Privacy Act',jur:'Federal (USA)',
+   penalties:'Loss of federal funding',notif:'N/A',resp:'Reasonable',cure:'N/A',
+   obls:['Student record protections','Parental access rights','Limits on disclosure'],
+   logic:'OR',tests:[
+     {type:'industry',label:'Educational institution',req:'education',pass:c=>c.industry==='education'},
+     {type:'datatype',label:'Processes student records',req:'Student',pass:c=>c.dataTypes.includes('Student')}]},
+  {group:'US Federal',acronym:'CMMC',name:'Cybersecurity Maturity Model Certification',jur:'Federal (USA)',
+   penalties:'Civil: Revocation of DoD contracts',notif:'72 hrs',resp:'N/A',cure:'N/A',
+   obls:['CUI protection','Risk assessment','Incident response','Pen test'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Defense contractor / DoD supplier',req:'defense',pass:c=>c.industry==='defense'},
+     {type:'datatype',label:'Handles Controlled Unclassified Info (CUI)',req:'CUI',pass:c=>c.dataTypes.includes('CUI')||c.industry==='defense'}]},
+  {group:'US Federal',acronym:'PCI-DSS',name:'Payment Card Industry Data Security Standard',jur:'Global (card brands)',
+   penalties:'Civil: $500K/incident + $100K/month',notif:'Immediate',resp:'N/A',cure:'N/A',
+   obls:['Cardholder data protection','Encryption','Pen test','Vulnerability scans'],
+   logic:'OR',tests:[{type:'datatype',label:'Processes / stores / transmits payment card data',req:'CardData',pass:c=>c.dataTypes.includes('CardData')}]},
+  {group:'US Federal',acronym:'SEC Cyber',name:'SEC Cybersecurity Disclosure Rules',jur:'Federal (USA)',
+   penalties:'Civil penalties + enforcement actions',notif:'96 hrs (material)',resp:'Annual report',cure:'N/A',
+   obls:['Material incident disclosure (4 days)','Annual cyber risk report','Board oversight disclosure'],
+   logic:'OR',tests:[{type:'industry',label:'SEC-registered / publicly traded financial services',req:'financial',pass:c=>c.industry==='financial'}]},
+  {group:'US State',acronym:'CCPA',name:'California Consumer Privacy Act',jur:'California',
+   penalties:'Civil: $750/consumer or actual damages; $7,500 intentional',notif:'72 hrs',resp:'45 days',cure:'30 days',
+   obls:['Right to know','Right to delete','Right to opt-out of sale','Privacy notice','Vendor contracts'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets California residents',req:'CA or ALL',pass:c=>c.states.includes('CA')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue ≥ $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Controls data of ≥ 100,000 CA consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'datasale',label:'≥ 50% of revenue from selling personal data',req:'50%',reqNum:50,pass:c=>c.dataSale>=50}]},
+  {group:'US State',acronym:'CPRA',name:'California Privacy Rights Act (CCPA 2.0)',jur:'California',
+   penalties:'Civil: $7,500 intentional; $2,500 unintentional',notif:'72 hrs',resp:'45 days',cure:'30 days',
+   obls:['All CCPA rights +','Right to correct','Sensitive PI limits','Data minimization','Annual cyber audit'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets California residents',req:'CA or ALL',pass:c=>c.states.includes('CA')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue ≥ $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Buys/sells data of ≥ 100,000 CA consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'datasale',label:'≥ 50% revenue from personal data sales',req:'50%',reqNum:50,pass:c=>c.dataSale>=50}]},
+  {group:'US State',acronym:'CPA',name:'Colorado Privacy Act',jur:'Colorado',
+   penalties:'Civil: $20,000 per violation',notif:'30 hrs',resp:'45 days',cure:'60 days',
+   obls:['Consumer rights (access/correct/delete/port/opt-out)','Data minimization','DPIAs'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Colorado residents',req:'CO or ALL',pass:c=>c.states.includes('CO')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 CO consumers/year',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND derives revenue from data',req:'25,000 + data rev',pass:c=>c.consumers>=25000&&c.dataSale>0}]},
+  {group:'US State',acronym:'VCPDA',name:'Virginia Consumer Data Protection Act',jur:'Virginia',
+   penalties:'Civil: $7,500 per violation + expenses',notif:'N/A',resp:'45 days',cure:'30 days',
+   obls:['Consumer rights','DPIAs','Vendor contracts','Sensitive data opt-in'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Virginia residents',req:'VA or ALL',pass:c=>c.states.includes('VA')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 VA consumers/year',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥ 50% revenue from data',req:'25,000 + 50%',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'CTDPA',name:'Connecticut Data Privacy Act',jur:'Connecticut',
+   penalties:'Civil penalties per violation',notif:'N/A',resp:'45 days',cure:'60 days',
+   obls:['Consumer rights','Sensitive data opt-in','DPIAs','Data minimization'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Connecticut residents',req:'CT or ALL',pass:c=>c.states.includes('CT')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 CT consumers/year',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥ 25% revenue from data',req:'25,000 + 25%',pass:c=>c.consumers>=25000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'DPDPA',name:'Delaware Personal Data Privacy Act',jur:'Delaware',
+   penalties:'Civil penalties per violation',notif:'N/A',resp:'45 days',cure:'60 days',
+   obls:['Consumer rights','DPIAs','Vendor contracts','Data minimization'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Delaware residents',req:'DE or ALL',pass:c=>c.states.includes('DE')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 35,000 DE consumers/year',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'≥ 10,000 consumers AND ≥ 20% revenue from data',req:'10,000 + 20%',pass:c=>c.consumers>=10000&&c.dataSale>=20}]},
+  {group:'US State',acronym:'NYS DFS 500',name:'23 NYCRR Part 500 – DFS Cybersecurity',jur:'New York',
+   penalties:'Civil: $1,000/record; enforcement actions',notif:'72 hrs',resp:'N/A',cure:'N/A',
+   obls:['CISO designation','Annual pen test','Bi-annual vuln scan','MFA','Encryption','Vendor TPSP requirements'],
+   logic:'AND',tests:[
+     {type:'state',label:'Licensed / operates in New York (fin/insurance)',req:'NY or ALL',pass:c=>c.states.includes('NY')||c.states.includes('ALL')},
+     {type:'industry',label:'NYS-licensed financial services or insurance entity',req:'financial / insurance',pass:c=>['financial','insurance'].includes(c.industry)}]},
+  {group:'US State',acronym:'NY Shield',name:'NY SHIELD Act',jur:'New York',
+   penalties:'Civil: Greater of $20/NY resident or $250,000',notif:'10 days (AG)',resp:'N/A',cure:'N/A',
+   obls:['Reasonable data security program','Breach notification to AG','Technical / admin / physical safeguards'],
+   logic:'AND',tests:[
+     {type:'state',label:'Owns or licenses private info of NY residents',req:'NY or ALL',pass:c=>c.states.includes('NY')||c.states.includes('ALL')},
+     {type:'datatype',label:'Holds PII / financial / health data of NY residents',req:'PII / Financial / PHI',pass:c=>c.dataTypes.some(d=>['PII','Financial','PHI'].includes(d))||c.consumers>0}]},
+  {group:'US State',acronym:'NIAC',name:'Insurance Data Security Model Law',jur:'AL,CT,DE,IN,LA,ME,MI,MS,ND,NH,OH,SC',
+   penalties:'Varies by state',notif:'72 hrs',resp:'N/A',cure:'N/A',
+   obls:['Information security program','Risk assessment','Third-party vendor oversight','Incident response plan'],
+   logic:'AND',tests:[
+     {type:'state',label:'Licensed insurer in a NAIC model-law adopting state',req:'AL/CT/DE/IN/LA/ME/MI/MS/ND/NH/OH/SC',pass:c=>c.states.some(s=>['AL','CT','DE','IN','LA','ME','MI','MS','ND','NH','OH','SC','ALL'].includes(s))},
+     {type:'industry',label:'Insurance licensee ("Licensee")',req:'insurance',pass:c=>c.industry==='insurance'}]},
+  {group:'International',acronym:'GDPR',name:'General Data Protection Regulation',jur:'EU / EEA',
+   penalties:'Civil: Greater of 4% annual global revenue or €20M',notif:'72 hrs',resp:'30 days',cure:'N/A',
+   obls:['Lawful basis','DPO (where required)','DPIAs','8 data subject rights','Int\'l transfer restrictions','Vendor DPAs'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of EU/EEA residents',req:'EU',pass:c=>c.intl.includes('EU')}]},
+  {group:'International',acronym:'UK DPA',name:'UK Data Protection Act 2018 / UK GDPR',jur:'United Kingdom',
+   penalties:'Civil: Up to £17.5M or 4% global turnover',notif:'72 hrs',resp:'30 days',cure:'N/A',
+   obls:['All GDPR equivalents','UK transfer mechanisms','ICO registration'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of UK residents',req:'UK',pass:c=>c.intl.includes('UK')}]},
+  {group:'International',acronym:'PIPEDA',name:'Personal Information Protection and Electronic Documents Act',jur:'Canada',
+   penalties:'Civil: Up to CAD $100,000',notif:'ASAP (significant risk)',resp:'Reasonable',cure:'N/A',
+   obls:['Consent','Purpose limitation','Data minimization','Breach reporting'],
+   logic:'OR',tests:[{type:'country',label:'Collects / uses personal info of Canadians commercially',req:'Canada',pass:c=>c.intl.includes('Canada')}]},
+  {group:'International',acronym:'LGPD',name:'Lei Geral de Proteção de Dados Pessoais',jur:'Brazil',
+   penalties:'Civil: Up to 2% Brazil revenue, capped at R$50M/violation',notif:'Reasonable time',resp:'15 days',cure:'N/A',
+   obls:['Lawful basis','8 data subject rights','DPO','DPIAs','Vendor contracts'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of Brazilian residents',req:'Brazil',pass:c=>c.intl.includes('Brazil')}]},
+  {group:'International',acronym:'APPI',name:'Act on Protection of Personal Information',jur:'Japan',
+   penalties:'Civil: Up to ¥100M (~$900K)',notif:'Promptly',resp:'2 weeks',cure:'N/A',
+   obls:['Purpose specification','Third-party restrictions','Breach notification','Sensitive PI opt-in'],
+   logic:'OR',tests:[{type:'country',label:'Handles personal information of Japanese residents',req:'Japan',pass:c=>c.intl.includes('Japan')}]},
+  {group:'International',acronym:'PIPL',name:"Personal Information Protection Law (China)",jur:'China',
+   penalties:'Civil: Up to ¥50M or 5% annual revenue',notif:'Promptly',resp:'Yes',cure:'N/A',
+   obls:['Separate consent for sensitive PI','Data localization','DPO required','CAC cross-border approval'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal information of PRC residents',req:'China',pass:c=>c.intl.includes('China')}]},
+];
+
+// ── EVAL ─────────────────────────────────────────────────────────────────────
+function evalReg(reg,co){
+  const logic=reg.logic;
+  const tested=reg.tests.map(t=>{
+    const passed=t.pass(co);
+    let compVal='—';
+    if(t.type==='revenue')compVal='$'+co.revenue+'M';
+    else if(t.type==='consumers'||t.type==='consumers_ds')compVal=fmtN(co.consumers);
+    else if(t.type==='datasale')compVal=co.dataSale+'%';
+    else if(t.type==='industry')compVal=co.industry||'(not set)';
+    else if(t.type==='state')compVal=co.states.join(', ')||'(none)';
+    else if(t.type==='country')compVal=co.intl.join(', ')||'(none)';
+    else if(t.type==='datatype')compVal=co.dataTypes.join(', ')||'(none)';
+    else compVal='Yes';
+    return{...t,passed,compVal};
+  });
+  let inScope=false;
+  if(logic==='always')inScope=true;
+  else if(logic==='OR')inScope=tested.some(t=>t.passed);
+  else if(logic==='AND')inScope=tested.every(t=>t.passed);
+  else if(logic==='state_AND_threshold'){
+    const stPass=tested.find(t=>t.type==='state')?.passed??false;
+    const thPass=tested.filter(t=>t.type!=='state').some(t=>t.passed);
+    inScope=stPass&&thPass;
+  }
+  let watch=false;
+  if(!inScope){
+    if(logic==='state_AND_threshold')watch=tested.find(t=>t.type==='state')?.passed??false;
+    if(!watch) tested.forEach(t=>{
+      if(t.reqNum&&!t.passed){
+        if(t.type==='revenue'&&co.revenue>=t.reqNum*0.5)watch=true;
+        if((t.type==='consumers'||t.type==='consumers_ds')&&co.consumers>=t.reqNum*0.5)watch=true;
+      }
+    });
+  }
+  return{inScope,watch:!inScope&&watch,tests:tested};
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function runAnalysis(){
+  const name=document.getElementById('f-name').value.trim();
+  const revenue=parseFloat(document.getElementById('f-rev').value)||0;
+  const dataSale=parseFloat(document.getElementById('f-datasale').value)||0;
+  const consumers=parseInt(document.getElementById('f-consumers').value)||0;
+  const industry=document.getElementById('f-industry').value;
+  const states=sel('f-states'),intl=sel('f-intl'),dataTypes=sel('f-data');
+  if(!name){alert('Please enter a company name.');return;}
+  const co={name,revenue,dataSale,consumers,industry,states,intl,dataTypes};
+  const ev=REGS.map(r=>({reg:r,...evalReg(r,co)}));
+  const inS=ev.filter(e=>e.inScope),wa=ev.filter(e=>e.watch),out=ev.filter(e=>!e.inScope&&!e.watch);
+
+  const coCard=`<div class="co-card">
+    <div class="co-name">${name}<span style="font-size:13px;font-weight:400;color:var(--slate);margin-left:10px">${industry||''}</span></div>
+    <div class="co-stats">
+      <div class="co-stat"><div class="v">${revenue?'$'+revenue+'M':'—'}</div><div class="l">Revenue</div></div>
+      <div class="co-stat"><div class="v">${consumers?fmtN(consumers):'—'}</div><div class="l">Consumers</div></div>
+      <div class="co-stat"><div class="v">${dataSale?dataSale+'%':'—'}</div><div class="l">Data Sale %</div></div>
+      <div class="co-stat"><div class="v">${states.join(', ')||'—'}</div><div class="l">US States</div></div>
+      <div class="co-stat"><div class="v">${intl.join(', ')||'—'}</div><div class="l">Intl</div></div>
+    </div></div>`;
+
+  const sumBar=`<div class="sum-bar">
+    <div class="sum-box s-total"><div class="n">${REGS.length}</div><div class="l">Checked</div></div>
+    <div class="sum-box s-in"><div class="n">${inS.length}</div><div class="l">In Scope ✓</div></div>
+    <div class="sum-box s-watch"><div class="n">${wa.length}</div><div class="l">Watch ⚠</div></div>
+    <div class="sum-box s-out"><div class="n">${out.length}</div><div class="l">Not in Scope</div></div>
+  </div>`;
+
+  let cards='';
+  ['US Federal','US State','International'].forEach(grp=>{
+    const gAll=[...inS,...wa,...out].filter(e=>e.reg.group===grp);
+    if(!gAll.length)return;
+    const gi=gAll.filter(e=>e.inScope).length,gw=gAll.filter(e=>e.watch).length,go=gAll.filter(e=>!e.inScope&&!e.watch).length;
+    cards+=`<div class="grp-hdr">${grp==='US Federal'?'🇺🇸':grp==='US State'?'🏛':'🌍'} ${grp}<span class="grp-counts">${gi} in scope · ${gw} watch · ${go} out</span></div>`;
+    [...inS,...wa,...out].filter(e=>e.reg.group===grp).forEach(e=>{
+      const pill=e.inScope?'<span class="pill p-in">✓ IN SCOPE</span>':e.watch?'<span class="pill p-watch">⚠ WATCH</span>':'<span class="pill p-out">✗ OUT</span>';
+      const rows=e.tests.map(t=>`<tr><td>${t.label}</td><td>${t.req||'—'}</td><td class="${t.passed?'t-pass':'t-fail'}">${t.compVal}</td><td style="text-align:center">${t.passed?'✅':'❌'}</td></tr>`).join('');
+      const chips=(e.reg.obls||[]).map(o=>`<span class="chip">${o}</span>`).join('');
+      cards+=`<div class="rc ${e.inScope?'in':e.watch?'watch':'out'} ${e.inScope?'open':''}">
+        <div class="rc-head" onclick="this.parentElement.classList.toggle('open')">
+          <div class="rc-acr">${e.reg.acronym}</div>
+          <div class="rc-info"><div class="rc-name">${e.reg.name}</div><div class="rc-jur">${e.reg.jur}</div></div>
+          ${pill}<div class="rc-toggle">▼</div>
+        </div>
+        <div class="rc-body">
+          <table class="tt"><thead><tr><th>Threshold / Trigger</th><th>Required</th><th>Company Value</th><th>Pass?</th></tr></thead><tbody>${rows}</tbody></table>
+          <div class="sla-grid">
+            <div class="sla-item"><div class="sl">⏱ Breach Notification</div>${e.reg.notif||'—'}</div>
+            <div class="sla-item"><div class="sl">📋 Consumer Response</div>${e.reg.resp||'—'}</div>
+            <div class="sla-item"><div class="sl">🔧 Cure Period</div>${e.reg.cure||'—'}</div>
+          </div>
+          <div style="font-size:11px;color:#b91c1c;font-weight:700;margin-bottom:5px">⚠ ${e.reg.penalties}</div>
+          <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:4px">Key Obligations:</div>
+          <div class="chips">${chips}</div>
+        </div></div>`;
+    });
+  });
+
+  document.getElementById('results-panel').innerHTML=coCard+sumBar+cards;
+}
+
+function clearAll(){
+  ['f-name','f-rev','f-datasale','f-consumers'].forEach(id=>document.getElementById(id).value='');
+  ['f-industry','f-states','f-intl','f-data'].forEach(id=>[...document.getElementById(id).options].forEach(o=>o.selected=false));
+  clearAutoFill();
+  document.getElementById('results-panel').innerHTML=`<div class="empty"><div class="ico">⚖️</div><p><strong>Enter a company name and click Auto-Lookup</strong></p></div>`;
+}
+</script>
+</body>
+</html>
