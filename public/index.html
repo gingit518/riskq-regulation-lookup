@@ -243,6 +243,21 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 </div>
 
 <script>
+// ── URL ACCESS PARAM — reads ?access=TOKEN and stores in session ─────────────
+(function readAccessParam(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const access = params.get('access');
+    if(access && access.trim()){
+      sessionStorage.setItem('rq_lookup_secret', access.trim());
+      // Strip param from URL bar without reload (keeps it clean)
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete('access');
+      window.history.replaceState({}, '', clean.toString());
+    }
+  } catch(e){}
+})();
+
 // ── API KEY MANAGEMENT ───────────────────────────────────────────────────────
 let LOOKUP_SECRET = sessionStorage.getItem('rq_lookup_secret') || '';
 
