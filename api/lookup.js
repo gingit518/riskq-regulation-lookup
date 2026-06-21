@@ -1,7 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 export default async function handler(req, res) {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Server misconfiguration: ANTHROPIC_API_KEY not set. Check Vercel environment variables.' });
+  }
+  const client = new Anthropic({ apiKey });
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
