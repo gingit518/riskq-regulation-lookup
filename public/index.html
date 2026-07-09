@@ -135,7 +135,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 49 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 52 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -170,10 +170,17 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <input type="number" id="f-datasale" placeholder="e.g. 0" min="0" max="100"/>
       </div>
     </div>
-    <div class="field" id="field-cons">
-      <label>Consumers / Data Subjects<span class="source-badge src-manual" id="badge-cons">manual</span></label>
-      <input type="number" id="f-consumers" placeholder="e.g. 150000" min="0"/>
-      <div class="hint">Total individuals whose data you process</div>
+    <div class="field-row">
+      <div class="field" id="field-emp">
+        <label>Employees<span class="source-badge src-manual" id="badge-emp">manual</span></label>
+        <input type="number" id="f-employees" placeholder="e.g. 120" min="0"/>
+        <div class="hint">Total headcount — drives EU NIS2 / CIRCIA size thresholds</div>
+      </div>
+      <div class="field" id="field-cons">
+        <label>Consumers / Data Subjects<span class="source-badge src-manual" id="badge-cons">manual</span></label>
+        <input type="number" id="f-consumers" placeholder="e.g. 150000" min="0"/>
+        <div class="hint">Total individuals whose data you process</div>
+      </div>
     </div>
 
     <div class="sec-lbl">🏭 Industry</div>
@@ -190,6 +197,17 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="tech">Technology / SaaS</option>
         <option value="telecom">Telecommunications</option>
         <option value="media">Media / Advertising</option>
+        <option value="energy">Energy / Utilities</option>
+        <option value="water">Water / Wastewater</option>
+        <option value="transportation">Transportation</option>
+        <option value="chemical">Chemical</option>
+        <option value="manufacturing">Critical Manufacturing</option>
+        <option value="foodag">Food &amp; Agriculture</option>
+        <option value="commercial">Commercial Facilities</option>
+        <option value="emergency">Emergency Services</option>
+        <option value="dams">Dams</option>
+        <option value="nuclear">Nuclear</option>
+        <option value="government">Government Facilities</option>
         <option value="other">Other</option>
       </select>
     </div>
@@ -370,6 +388,7 @@ async function autoLookup(){
     if(data.revenue_millions != null){ document.getElementById('f-rev').value = Math.round(data.revenue_millions); markAuto('field-rev','badge-rev'); }
     if(data.data_sale_pct != null){ document.getElementById('f-datasale').value = data.data_sale_pct; markAuto('field-ds','badge-ds'); }
     if(data.consumers_estimate != null){ document.getElementById('f-consumers').value = Math.round(data.consumers_estimate); markAuto('field-cons','badge-cons'); }
+    if(data.employees != null){ document.getElementById('f-employees').value = Math.round(data.employees); markAuto('field-emp','badge-emp'); }
     if(data.industry){ document.getElementById('f-industry').value = data.industry; markAuto('field-ind','badge-ind'); }
     if(data.us_states?.length){
       const s = document.getElementById('f-states');
@@ -445,6 +464,12 @@ const REGS=[
    logic:'AND',tests:[
      {type:'industry',label:'Federal agency or contractor operating a federal information system',req:'defense',pass:c=>c.industry==='defense'},
      {type:'datatype',label:'Handles federal / Controlled Unclassified Info',req:'CUI',pass:c=>c.dataTypes.includes('CUI')||c.industry==='defense'}]},
+  {group:'US Federal',acronym:'CIRCIA',name:'Cyber Incident Reporting for Critical Infrastructure Act',jur:'Federal (USA)',
+   penalties:'No direct statutory monetary fine; non-compliance risk includes CISA subpoena power, DOJ referral for false statements, and contractual/reputational exposure',notif:'72 hrs (covered cyber incident); 24 hrs (ransomware payment)',resp:'N/A',cure:'N/A',
+   obls:['72-hr reporting of covered cyber incidents to CISA','24-hr reporting of ransomware payments','Data preservation obligations','Final rule not yet published as of July 2026 (targeting May 2026, delayed by DHS funding lapses) \u2014 obligations here reflect the April 2024 NPRM structure and may change','Size test is an approximation: SBA small-business size standards vary 100\u20131,500 employees (or $2.25M\u2013$47M revenue) by sector \u2014 verify against your specific NAICS code/SBA threshold','Some CIRCIA-covered entity types are in-scope regardless of size; this model does not capture those exceptions'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Operates in a CIRCIA-covered critical infrastructure sector (chemical, commercial facilities, communications, critical manufacturing, dams, defense industrial base, emergency services, energy, financial services, food & agriculture, government facilities, healthcare, IT, nuclear, transportation, water/wastewater)',req:'critical infrastructure sector',pass:c=>['chemical','commercial','telecom','manufacturing','dams','defense','emergency','energy','financial','insurance','foodag','government','healthcare','tech','nuclear','transportation','water'].includes(c.industry)},
+     {type:'employees',label:'Exceeds SBA small-business size standard (approximated as \u2265100 employees \u2014 actual threshold varies by sector)',reqNum:100,req:'~100+ employees (sector-dependent)',pass:c=>c.employees>=100}]},
   {group:'US State',acronym:'CCPA',name:'California Consumer Privacy Act',jur:'California',
    penalties:'Civil: $750/consumer or actual damages; $7,500 intentional',notif:'72 hrs',resp:'45 days',cure:'30 days',
    obls:['Right to know','Right to delete','Right to opt-out of sale','Privacy notice','Vendor contracts'],
@@ -631,6 +656,19 @@ const REGS=[
    penalties:'In force since Jan 1, 2026, replacing Decree 13/2023; for data-trading violations, up to 10x violation revenue or VND 3 billion (~$115K), whichever is higher',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
    obls:['Consent for processing','Data Protection Impact Assessment','Cross-border transfer restrictions','Data subject rights'],
    logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Vietnam',req:'Vietnam',pass:c=>c.intl.includes('Vietnam')}]},
+  {group:'International',acronym:'DORA',name:'Digital Operational Resilience Act (Regulation (EU) 2022/2554)',jur:'EU / EEA \u2014 financial sector (20 categories of financial entities + their ICT providers)',
+   penalties:'Up to 2% of annual worldwide turnover (financial entities); up to \u20ac1,000,000 for individuals; critical ICT third-party providers up to \u20ac5,000,000 (1% of average daily worldwide turnover, per day, capped at 6 months)',notif:'Initial notification within 4 hrs of major-incident classification (max 24 hrs from awareness); intermediate + final reports follow',resp:'N/A',cure:'N/A',
+   obls:['ICT risk management framework','Incident classification & reporting to competent authority','Digital operational resilience testing (incl. threat-led penetration testing for significant entities)','Third-party ICT risk register and oversight','DORA is lex specialis over NIS2 for in-scope financial entities \u2014 see the NIS2 entry, which excludes financial/insurance to avoid double-counting','In force since Jan 17, 2025; 2026 is the first year of active supervisory enforcement','Applies regardless of size \u2014 proportionality scales requirements for microenterprises (<10 employees, <\u20ac2M turnover/balance sheet) but does not exempt them'],
+   logic:'AND',tests:[
+     {type:'country',label:'Financial entity or ICT provider operating in / serving the EU',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'industry',label:'Financial entity (bank, insurer, investment firm, payment/e-money institution, crypto-asset service provider, etc.)',req:'financial or insurance',pass:c=>['financial','insurance'].includes(c.industry)}]},
+  {group:'International',acronym:'NIS2',name:'Network and Information Security Directive 2 (EU) 2022/2555',jur:'EU / EEA \u2014 Annex I "essential" + Annex II "important" sectors',
+   penalties:'Up to \u20ac10,000,000 or 2% global turnover (essential entities); up to \u20ac7,000,000 or 1.4% global turnover (important entities); management-body personal liability for non-compliance',notif:'24 hr early warning; 72 hr incident notification; 1 month final report',resp:'N/A',cure:'N/A',
+   obls:['Risk management measures (Art. 21): supply chain security, incident handling, business continuity, encryption, access control','Governance / management-body accountability & training','Incident reporting to national CSIRT','Excludes financial entities \u2014 DORA is lex specialis for banks/insurers under DORA Recital 16 / NIS2 Recital 28, so they are scoped under the DORA entry instead','Space, postal/courier, waste management, and research-sector entities are also NIS2-covered but not yet modeled as distinct industry options here','Size test approximates the statute\u2019s \u20ac-denominated threshold using the tool\u2019s USD revenue field \u2014 treat as parity, not an FX-converted figure','As of March 2026 roughly two-thirds of member states have transposed NIS2; Commission proposed simplification amendments in Jan 2026'],
+   logic:'AND',tests:[
+     {type:'country',label:'Operates in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'industry',label:'Annex I/II sector: energy, transport, health, water, digital infrastructure/ICT service management, chemical, manufacturing, food, or public administration (excludes financial/insurance \u2014 see DORA)',req:'NIS2 sector',pass:c=>['healthcare','energy','water','transportation','tech','telecom','chemical','manufacturing','foodag','government'].includes(c.industry)},
+     {type:'employees',label:'Medium+ enterprise (\u226550 employees or \u2265\u20ac10M turnover, treated at parity to $10M here)',reqNum:50,req:'50+ employees or \u20ac10M+ turnover',pass:c=>c.employees>=50||c.revenue>=10}]},
 ];
 
 // ── EVAL ─────────────────────────────────────────────────────────────────────
@@ -640,6 +678,7 @@ function evalReg(reg,co){
     const passed=t.pass(co);
     let compVal='—';
     if(t.type==='revenue')compVal='$'+co.revenue+'M';
+    else if(t.type==='employees')compVal=fmtN(co.employees)+' employees';
     else if(t.type==='consumers'||t.type==='consumers_ds')compVal=fmtN(co.consumers);
     else if(t.type==='datasale')compVal=co.dataSale+'%';
     else if(t.type==='industry')compVal=co.industry||'(not set)';
@@ -664,6 +703,7 @@ function evalReg(reg,co){
     if(!watch) tested.forEach(t=>{
       if(t.reqNum&&!t.passed){
         if(t.type==='revenue'&&co.revenue>=t.reqNum*0.5)watch=true;
+        if(t.type==='employees'&&co.employees>=t.reqNum*0.5)watch=true;
         if((t.type==='consumers'||t.type==='consumers_ds')&&co.consumers>=t.reqNum*0.5)watch=true;
       }
     });
@@ -677,10 +717,11 @@ function runAnalysis(){
   const revenue=parseFloat(document.getElementById('f-rev').value)||0;
   const dataSale=parseFloat(document.getElementById('f-datasale').value)||0;
   const consumers=parseInt(document.getElementById('f-consumers').value)||0;
+  const employees=parseInt(document.getElementById('f-employees').value)||0;
   const industry=document.getElementById('f-industry').value;
   const states=sel('f-states'),intl=sel('f-intl'),dataTypes=sel('f-data');
   if(!name){alert('Please enter a company name.');return;}
-  const co={name,revenue,dataSale,consumers,industry,states,intl,dataTypes};
+  const co={name,revenue,dataSale,consumers,employees,industry,states,intl,dataTypes};
   const ev=REGS.map(r=>({reg:r,...evalReg(r,co)}));
   const inS=ev.filter(e=>e.inScope),wa=ev.filter(e=>e.watch),out=ev.filter(e=>!e.inScope&&!e.watch);
 
@@ -688,6 +729,7 @@ function runAnalysis(){
     <div class="co-name">${name}<span style="font-size:13px;font-weight:400;color:var(--slate);margin-left:10px">${industry||''}</span></div>
     <div class="co-stats">
       <div class="co-stat"><div class="v">${revenue?'$'+revenue+'M':'—'}</div><div class="l">Revenue</div></div>
+      <div class="co-stat"><div class="v">${employees?fmtN(employees):'—'}</div><div class="l">Employees</div></div>
       <div class="co-stat"><div class="v">${consumers?fmtN(consumers):'—'}</div><div class="l">Consumers</div></div>
       <div class="co-stat"><div class="v">${dataSale?dataSale+'%':'—'}</div><div class="l">Data Sale %</div></div>
       <div class="co-stat"><div class="v">${states.join(', ')||'—'}</div><div class="l">US States</div></div>
