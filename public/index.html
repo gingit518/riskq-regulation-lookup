@@ -105,6 +105,8 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 .fw-name{font-size:12px;font-weight:700;color:var(--navy);margin:2px 0 8px;}
 .fw-desc{font-size:12px;color:var(--navy);line-height:1.5;margin-bottom:8px;}
 .fw-who{font-size:11px;color:var(--gray);font-style:italic;}
+.ne-badge{font-family:var(--font-b);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--navy);color:#fff;padding:3px 9px;border-radius:10px;}
+.ne-card{border-left:5px solid var(--navy);}
 .pill{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;}
 .p-in{background:var(--greenlight);color:var(--green);}
 .p-watch{background:#fef3c7;color:#78350f;}
@@ -135,7 +137,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 82 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 88 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -294,6 +296,16 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
       <div class="hint">Drives EU AI Act scoping. Leave blank if the company does not build or deploy AI systems.</div>
     </div>
 
+    <div class="sec-lbl">📞 Marketing Channels</div>
+    <div class="field" id="field-marketing">
+      <label>Outbound Consumer Marketing<span class="source-badge src-manual" id="badge-marketing">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi)</span></label>
+      <select id="f-marketing" multiple>
+        <option value="OutboundCalls">Autodialed / prerecorded / live outbound calls</option>
+        <option value="SMS">SMS / text message marketing</option>
+      </select>
+      <div class="hint">Drives TCPA scoping. Leave blank if the company does not call or text consumers for marketing purposes.</div>
+    </div>
+
     <button class="btn-run" onclick="runAnalysis()">⚖️ Analyze Regulatory Scope</button>
     <button class="btn-clear" onclick="clearAll()">Clear</button>
   </div>
@@ -336,6 +348,21 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
       <div class="fw-name">Protecting CUI in Non-Federal Systems</div>
       <p class="fw-desc">A NIST publication defining controls for protecting Controlled Unclassified Information. Becomes a contractual requirement (not a standalone law) for DoD suppliers via DFARS clauses and CMMC certification.</p>
       <div class="fw-who">Typically required via contract for: defense contractors and subcontractors handling CUI — see the CMMC card above for the related legal/contractual trigger.</div>
+    </div>
+  </div>
+</div>
+
+<div class="fw-section">
+  <div class="fw-hdr">
+    <div class="fw-title">🎯 Named-Entity Regulations <span class="ne-badge">Binding — Applies Only to Designated Companies</span></div>
+    <p class="fw-note">These are real, legally binding regulations — not voluntary like the Framework Alignment section above — but they apply to a specific, named, small list of companies designated by a regulator, not to companies generally based on revenue, industry, or data volume. RiskQ does not score these against your company profile; check the named list directly.</p>
+  </div>
+  <div class="fw-grid">
+    <div class="fw-card ne-card">
+      <div class="fw-acr">EU DMA</div>
+      <div class="fw-name">Digital Markets Act (Regulation (EU) 2022/1925)</div>
+      <p class="fw-desc">Applies only to companies the European Commission has formally designated as \u201cgatekeepers\u201d for specific \u201ccore platform services.\u201d As of 2026 the designated gatekeepers are Alphabet (Google), Amazon, Apple, ByteDance (TikTok), Meta, Microsoft, and Booking.com. Penalties reach up to 10% of global annual turnover (20% for repeat non-compliance), with daily fines up to 5% of average daily worldwide turnover for ongoing non-compliance. The Commission is escalating DMA/DSA enforcement in 2026, with potential fines against the named gatekeepers estimated to exceed \u20ac100 billion collectively.</p>
+      <div class="fw-who">Applies to: only the Commission-designated gatekeepers named above. If your company is not on that list, the DMA does not apply to you — no revenue or user-count threshold puts a company in scope on its own.</div>
     </div>
   </div>
 </div>
@@ -513,6 +540,18 @@ const REGS=[
    logic:'AND',tests:[
      {type:'datatype',label:'Processes personal health records / consumer health data',req:'PHI',pass:c=>c.dataTypes.includes('PHI')},
      {type:'industry',label:'Not already a HIPAA-covered entity (healthcare/health-insurance industry is covered by HIPAA instead)',req:'non-healthcare industry',pass:c=>c.industry!=='healthcare'}]},
+  {group:'US Federal',acronym:'ADA Title III',name:'Americans with Disabilities Act, Title III (website/app accessibility, WCAG 2.1 AA)',jur:'Federal (USA)',
+   penalties:'Civil: $75,000 first violation, $150,000 for repeat violations (DOJ); typical plaintiff-attorney settlement demands of $10,000\u2013$25,000 before litigation; attorney\u2019s fees and injunctive relief in private suits',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['WCAG 2.1 Level AA is the de facto court-recognized technical standard, though the ADA itself names no specific standard','Applies to websites/apps of businesses considered \u201cplaces of public accommodation\u201d \u2014 DOJ and most courts read this to cover essentially all commercial websites, not just brick-and-mortar-adjacent ones','3,117 federal website-accessibility lawsuits filed in 2025 alone (+27% YoY), ~70% targeting online retail','Assumes the company has a public-facing website or app \u2014 if not, this does not apply'],
+   logic:'always',tests:[{type:'always',label:'Applies to any company with a public-facing commercial website or app',req:'Universal (assumes public-facing digital presence)',pass:()=>true}]},
+  {group:'US Federal',acronym:'TCPA',name:'Telephone Consumer Protection Act',jur:'Federal (USA)',
+   penalties:'Private civil: $500 per violation ($1,500 if willful/knowing) \u2014 no proof of actual harm required, each call/text is a separate violation; FCC: up to $10,000 per call for intentional violations (TRACED Act)',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Prior express written consent required for autodialed/prerecorded calls and texts to cell phones','AI-generated/cloned voices in robocalls are covered (FCC ruling, Feb 2024)','Do-not-call registry compliance','Class-action-heavy area \u2014 statutory damages make even modest campaigns high-exposure'],
+   logic:'OR',tests:[{type:'marketing_channel',label:'Makes autodialed/prerecorded/live outbound calls or sends SMS marketing to consumers',req:'OutboundCalls or SMS',pass:c=>(c.marketingChannels||[]).includes('OutboundCalls')||(c.marketingChannels||[]).includes('SMS')}]},
+  {group:'US Federal',acronym:'FedRAMP',name:'Federal Risk and Authorization Management Program',jur:'Federal (USA)',
+   penalties:'No direct fine \u2014 non-compliance results in loss of FedRAMP Certification/Marketplace listing, which typically means loss of the federal contract or ability to sell to federal agencies',notif:'Per agency incident-reporting requirements',resp:'N/A',cure:'N/A',
+   obls:['Security authorization (assessment + ongoing monitoring) for cloud services used government-wide by federal agencies','Consolidated Rules for 2026 take effect Jul 4, 2026; enforcement of the new rules begins Jan 1, 2027','Distinct program from FISMA/CMMC, though related \u2014 modeled here on the same industry proxy as FISMA (defense/government-contractor), which may under-include civilian-agency cloud vendors outside that industry label \u2014 a known simplification worth revisiting'],
+   logic:'OR',tests:[{type:'industry',label:'Cloud service provider selling to federal agencies (government contractor)',req:'defense',pass:c=>c.industry==='defense'}]},
   {group:'US State',acronym:'UCPA',name:'Utah Consumer Privacy Act',jur:'Utah',
    penalties:'Civil: up to $7,500 per violation',notif:'As soon as possible',resp:'45 days',cure:'30 days',
    obls:['Consumer rights (access/delete/portability/opt-out of sale & targeted ads)','Privacy notice','Sensitive data processing consent','Right to correct inaccurate data effective July 1, 2026'],
@@ -688,9 +727,9 @@ const REGS=[
      {type:'state',label:'Operates in / targets Delaware residents',req:'DE or ALL',pass:c=>c.states.includes('DE')||c.states.includes('ALL')},
      {type:'consumers',label:'Controls data of ≥ 35,000 DE consumers/year',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
      {type:'consumers_ds',label:'≥ 10,000 consumers AND ≥ 20% revenue from data',req:'10,000 + 20%',pass:c=>c.consumers>=10000&&c.dataSale>=20}]},
-  {group:'US State',acronym:'NYS DFS 500',name:'23 NYCRR Part 500 – DFS Cybersecurity',jur:'New York',
-   penalties:'Civil: $1,000/record; enforcement actions',notif:'72 hrs',resp:'N/A',cure:'N/A',
-   obls:['CISO designation','Annual pen test','Bi-annual vuln scan','MFA','Encryption','Vendor TPSP requirements'],
+  {group:'US State',acronym:'NYS DFS 500',name:'23 NYCRR Part 500 \u2013 DFS Cybersecurity (as amended by the 2023 Second Amendment, fully enforceable as of Apr 2026)',jur:'New York',
+   penalties:'Civil: $1,000/record; enforcement actions scaled by the Second Amendment\u2019s expanded violation definitions',notif:'72 hrs; ransomware deployment is independently reportable regardless of whether a ransom is paid; board/senior governing body notification within 24 hrs of a material event',resp:'N/A',cure:'N/A',
+   obls:['CISO designation + annual Certification of Material Compliance (or Acknowledgment of Noncompliance) signed by BOTH the CISO and a senior executive','Annual pen test','Bi-annual vuln scan','Universal MFA (Nov 2025 requirement) for ANY access \u2014 remote, internal, cloud, privileged, third-party \u2014 with a preference for phishing-resistant methods (WebAuthn/FIDO2)','Encryption','Vendor TPSP requirements','Class A Company tier (\u2265$20M NY revenue AND [\u22652,000 global employees OR \u2265$1B global revenue]): additional independent annual cybersecurity audit, enhanced vendor/privileged-access review, continuous monitoring'],
    logic:'AND',tests:[
      {type:'state',label:'Licensed / operates in New York (fin/insurance)',req:'NY or ALL',pass:c=>c.states.includes('NY')||c.states.includes('ALL')},
      {type:'industry',label:'NYS-licensed financial services or insurance entity',req:'financial / insurance',pass:c=>['financial','insurance'].includes(c.industry)}]},
@@ -734,6 +773,14 @@ const REGS=[
    penalties:'Civil: Up to ¥50M or 5% annual revenue',notif:'Promptly',resp:'Yes',cure:'N/A',
    obls:['Separate consent for sensitive PI','Data localization','DPO required','CAC cross-border approval'],
    logic:'OR',tests:[{type:'country',label:'Processes personal information of PRC residents',req:'China',pass:c=>c.intl.includes('China')}]},
+  {group:'International',acronym:'DSL (China)',name:'Data Security Law',jur:'China',
+   penalties:'Core/important data violations: up to RMB 50,000,000 (~$7M) or 5% of prior-year revenue for the most serious offenses; important-data-only violations: up to RMB 10,000,000; suspension of business operations, license revocation, and \u201cuntrustworthy entity\u201d listing for serious/repeated violations',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Tiered data classification (core data / important data / general data) per national and sectoral catalogues','Risk assessments and reporting for important/core data processing','Cross-border transfer security assessment for important data','Distinct from PIPL \u2014 DSL governs data handling broadly (not just personal information) and applies even to non-personal business/industrial data','2026 amendments align DSL penalty structure more closely with PIPL and the amended CSL'],
+   logic:'OR',tests:[{type:'country',label:'Handles data (personal or non-personal) subject to PRC data security jurisdiction',req:'China',pass:c=>c.intl.includes('China')}]},
+  {group:'International',acronym:'CSL (China)',name:'Cybersecurity Law (substantially amended, effective Jan 1, 2026)',jur:'China',
+   penalties:'Up to RMB 10,000,000 for entities and RMB 1,000,000 for individuals where a violation causes \u201cserious consequences\u201d or \u201cparticularly serious consequences\u201d',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Network security obligations for all network operators','Enhanced obligations for Critical Information Infrastructure Operators (CIIOs): data localization, security review for network products/services, real-name registration','Distinct from PIPL/DSL \u2014 CSL addresses network/infrastructure security specifically; the 2026 amendment refers personal-information and data-protection liability out to PIPL/DSL rather than duplicating it','Amended penalty structure effective Jan 1, 2026'],
+   logic:'OR',tests:[{type:'country',label:'Operates network infrastructure or services subject to PRC cybersecurity jurisdiction',req:'China',pass:c=>c.intl.includes('China')}]},
   {group:'International',acronym:'PIPA',name:'Personal Information Protection Act (South Korea)',jur:'South Korea',
    penalties:'Civil: up to 3% of relevant revenue; criminal penalties for serious violations',notif:'72 hrs',resp:'10 days',cure:'N/A',
    obls:['Consent for collection/use','Data subject access/correction/deletion rights','Domestic representative (if large-scale)','Cross-border transfer restrictions'],
@@ -863,6 +910,12 @@ const REGS=[
    penalties:'Administrative: up to SAR 5,000,000 (~$1.3M) per violation, doubled for repeat offenses, plus potential asset confiscation; Criminal (sensitive-data disclosure with harmful intent): up to 2 years imprisonment and/or SAR 3,000,000 fine',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
    obls:['Consent / lawful basis','Data subject rights','Cross-border transfer restrictions (SDAIA approval)','Compliance grace period expired Sep 14, 2024 \u2014 fully enforceable now; SDAIA had issued 48 formal enforcement decisions as of 2026'],
    logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Saudi Arabia (extraterritorial)',req:'SaudiArabia',pass:c=>c.intl.includes('SaudiArabia')}]},
+  {group:'International',acronym:'EU DSA',name:'Digital Services Act (content moderation / platform obligations)',jur:'EU / EEA',
+   penalties:'Up to 3% of global annual turnover',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Notice-and-action mechanisms for illegal content','Transparency reporting on content moderation and advertising','Additional obligations for Very Large Online Platforms/Search Engines (45M+ monthly EU users): systemic risk assessments, independent audits','Commission is explicitly escalating DSA/DMA enforcement in 2026 against major platforms','Approximated here via industry (tech/media/retail = platform-like business models) since the tool has no dedicated \u201cplatform/intermediary service\u201d classification \u2014 a real business operating a hosting, search, or marketplace service in a DIFFERENT industry label would be missed by this proxy'],
+   logic:'AND',tests:[
+     {type:'country',label:'Provides an online platform/intermediary service reaching users in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'industry',label:'Platform-like business model (approximated via tech/media/retail industry)',req:'tech, media, or retail',pass:c=>['tech','media','retail'].includes(c.industry)}]},
   {group:'International',acronym:'EU AI Act (Prohibited)',name:'Artificial Intelligence Act \u2014 Prohibited Practices (Art. 5)',jur:'EU / EEA',
    penalties:'Up to \u20ac35,000,000 or 7% of global annual turnover \u2014 the highest tier of any regulation in this tool',notif:'N/A',resp:'N/A',cure:'N/A',
    obls:['Prohibition is absolute \u2014 no compliance path, only cessation of the practice','Covers social scoring, manipulative/subliminal techniques causing harm, real-time remote biometric identification in public spaces for law enforcement, and emotion inference in workplace/education contexts','In force and enforceable since Feb 2, 2025 \u2014 the first AI Act provision to take effect'],
@@ -904,6 +957,7 @@ function evalReg(reg,co){
     else if(t.type==='country')compVal=co.intl.join(', ')||'(none)';
     else if(t.type==='vendor_country')compVal=(co.vendorCountries||[]).join(', ')||'(none)';
     else if(t.type==='ai_role')compVal=(co.aiRoles||[]).join(', ')||'(none)';
+    else if(t.type==='marketing_channel')compVal=(co.marketingChannels||[]).join(', ')||'(none)';
     else if(t.type==='datatype')compVal=co.dataTypes.join(', ')||'(none)';
     else compVal='Yes';
     return{...t,passed,compVal};
@@ -946,9 +1000,9 @@ function runAnalysis(){
   const consumers=parseInt(document.getElementById('f-consumers').value)||0;
   const employees=parseInt(document.getElementById('f-employees').value)||0;
   const industry=document.getElementById('f-industry').value;
-  const states=sel('f-states'),intl=sel('f-intl'),dataTypes=sel('f-data'),vendorCountries=sel('f-vendor'),aiRoles=sel('f-airole');
+  const states=sel('f-states'),intl=sel('f-intl'),dataTypes=sel('f-data'),vendorCountries=sel('f-vendor'),aiRoles=sel('f-airole'),marketingChannels=sel('f-marketing');
   if(!name){alert('Please enter a company name.');return;}
-  const co={name,revenue,dataSale,consumers,employees,industry,states,intl,dataTypes,vendorCountries,aiRoles};
+  const co={name,revenue,dataSale,consumers,employees,industry,states,intl,dataTypes,vendorCountries,aiRoles,marketingChannels};
   const ev=REGS.map(r=>({reg:r,...evalReg(r,co)}));
   const inS=ev.filter(e=>e.inScope),wa=ev.filter(e=>e.watch),out=ev.filter(e=>!e.inScope&&!e.watch);
 
