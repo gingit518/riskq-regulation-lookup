@@ -135,7 +135,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 52 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 68 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -229,6 +229,10 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="FL">Florida</option><option value="MT">Montana</option>
         <option value="OR">Oregon</option><option value="TN">Tennessee</option>
         <option value="UT">Utah</option><option value="IA">Iowa</option>
+        <option value="NJ">New Jersey</option><option value="NE">Nebraska</option>
+        <option value="MN">Minnesota</option><option value="MD">Maryland</option>
+        <option value="KY">Kentucky</option><option value="RI">Rhode Island</option>
+        <option value="IL">Illinois</option><option value="WA">Washington</option>
       </select>
     </div>
 
@@ -257,6 +261,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="CardData">Payment Card Data</option>
         <option value="Employee">Employee Data</option>
         <option value="Sensitive">Sensitive Personal Data</option>
+        <option value="Biometric">Biometric Identifiers</option>
         <option value="CUI">Controlled Unclassified Info</option>
       </select>
     </div>
@@ -470,6 +475,116 @@ const REGS=[
    logic:'AND',tests:[
      {type:'industry',label:'Operates in a CIRCIA-covered critical infrastructure sector (chemical, commercial facilities, communications, critical manufacturing, dams, defense industrial base, emergency services, energy, financial services, food & agriculture, government facilities, healthcare, IT, nuclear, transportation, water/wastewater)',req:'critical infrastructure sector',pass:c=>['chemical','commercial','telecom','manufacturing','dams','defense','emergency','energy','financial','insurance','foodag','government','healthcare','tech','nuclear','transportation','water'].includes(c.industry)},
      {type:'employees',label:'Exceeds SBA small-business size standard (approximated as \u2265100 employees \u2014 actual threshold varies by sector)',reqNum:100,req:'~100+ employees (sector-dependent)',pass:c=>c.employees>=100}]},
+  {group:'US State',acronym:'UCPA',name:'Utah Consumer Privacy Act',jur:'Utah',
+   penalties:'Civil: up to $7,500 per violation',notif:'As soon as possible',resp:'45 days',cure:'30 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale & targeted ads)','Privacy notice','Sensitive data processing consent','Right to correct inaccurate data effective July 1, 2026'],
+   logic:'state_AND_revenue_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Utah residents',req:'UT or ALL',pass:c=>c.states.includes('UT')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue \u2265 $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Controls data of \u2265 100,000 UT consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND \u226550% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'ICDPA',name:'Iowa Consumer Data Protection Act',jur:'Iowa',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A \u2014 no fixed statutory deadline',resp:'90 days',cure:'90 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','No revenue threshold \u2014 volume-of-data-driven law'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Iowa residents',req:'IA or ALL',pass:c=>c.states.includes('IA')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 100,000 IA consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND \u226550% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'MCDPA',name:'Montana Consumer Data Privacy Act',jur:'Montana',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'Cure right expired Apr 1, 2026 \u2014 AG may proceed directly to enforcement',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','2025 amendment lowered thresholds and expanded minor protections'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Montana residents',req:'MT or ALL',pass:c=>c.states.includes('MT')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 25,000 MT consumers',req:'25,000',reqNum:25000,pass:c=>c.consumers>=25000},
+     {type:'consumers_ds',label:'\u2265 15,000 consumers AND \u226525% revenue from data sales',req:'15,000 + 25% data rev',pass:c=>c.consumers>=15000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'OCPA',name:'Oregon Consumer Privacy Act',jur:'Oregon',
+   penalties:'Civil: up to $7,500 per violation (each affected consumer may count separately)',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'Cure right expired Jan 1, 2026 \u2014 AG may proceed directly to enforcement',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Applies to for-profit AND non-profit entities','Auto manufacturers in scope regardless of thresholds','Universal opt-out signal recognition + geolocation data-sale ban, both effective Jan 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Oregon residents',req:'OR or ALL',pass:c=>c.states.includes('OR')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 100,000 OR consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND \u226525% revenue from data sales',req:'25,000 + 25% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'TDPSA',name:'Texas Data Privacy and Security Act',jur:'Texas',
+   penalties:'Civil: up to $7,500 per violation, no aggregate cap',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'30 days (permanent, does not sunset)',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale & targeted ads/profiling)','Privacy notice','No consumer-count or revenue threshold \u2014 applies to all but SBA-defined small businesses','Sensitive-data sellers are in scope regardless of size','Also intersects with Chapter 510 data broker registration and TRAIGA AI-system obligations (both effective Jan 1, 2026) \u2014 not modeled separately here'],
+   logic:'AND',tests:[
+     {type:'state',label:'Operates in / targets Texas residents',req:'TX or ALL',pass:c=>c.states.includes('TX')||c.states.includes('ALL')},
+     {type:'employees',label:'Not exempt as SBA small business (<500 employees), unless selling sensitive personal data (in scope regardless of size)',reqNum:500,req:'\u2265500 employees, or any size if selling sensitive data',pass:c=>c.employees>=500||(c.dataSale>0&&c.dataTypes.includes('Sensitive'))}]},
+  {group:'US State',acronym:'NJDPA',name:'New Jersey Data Privacy Act',jur:'New Jersey',
+   penalties:'Civil: up to $10,000 first violation, up to $20,000 for subsequent violations',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'18-month cure window ends July 15, 2026 \u2014 discretionary thereafter',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Sensitive data processing consent'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets New Jersey residents',req:'NJ or ALL',pass:c=>c.states.includes('NJ')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 100,000 NJ consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND derives revenue/discount from data sales',req:'25,000 + data rev',pass:c=>c.consumers>=25000&&c.dataSale>0}]},
+  {group:'US State',acronym:'NHPA',name:'New Hampshire Data Privacy Act (SB 255)',jur:'New Hampshire',
+   penalties:'Civil: up to $10,000 per violation (unfair/deceptive trade practice)',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'60 days, discretionary post-Jan 1, 2026',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets New Hampshire residents',req:'NH or ALL',pass:c=>c.states.includes('NH')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 35,000 NH consumers',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'\u2265 10,000 consumers AND \u226525% revenue from data sales',req:'10,000 + 25% data rev',pass:c=>c.consumers>=10000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'NDPA',name:'Nebraska Data Privacy Act',jur:'Nebraska',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'30 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','No consumer-count or revenue threshold \u2014 applies to all but SBA-defined small businesses','Sensitive-data-sale consent required of ALL businesses, including exempt small businesses','Size test approximates the generic 500-employee SBA standard \u2014 actual SBA thresholds vary by NAICS code'],
+   logic:'AND',tests:[
+     {type:'state',label:'Operates in / targets Nebraska residents',req:'NE or ALL',pass:c=>c.states.includes('NE')||c.states.includes('ALL')},
+     {type:'employees',label:'Not exempt as SBA small business (approximated as \u2265500 employees)',reqNum:500,req:'\u2265500 employees (approx.)',pass:c=>c.employees>=500}]},
+  {group:'US State',acronym:'MNCDPA',name:'Minnesota Consumer Data Privacy Act',jur:'Minnesota',
+   penalties:'Civil: up to $7,500 per violation plus attorney\u2019s fees',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'30 days, expires Jan 31, 2026',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Small-business (SBA) exemption applies'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Minnesota residents',req:'MN or ALL',pass:c=>c.states.includes('MN')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 100,000 MN consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND \u226525% revenue from data sales',req:'25,000 + 25% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'MODPA',name:'Maryland Online Data Privacy Act',jur:'Maryland',
+   penalties:'Civil: up to $10,000 first violation, up to $25,000 for subsequent violations',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'60 days until Apr 1, 2027, then none',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Notably tighter sensitive-data restrictions than most state laws (near-ban on sale of sensitive data) and heightened minor protections','Lowest consumer-count thresholds of any modeled state law','Applicable from Apr 1, 2026 (law took effect Oct 1, 2025)'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Maryland residents',req:'MD or ALL',pass:c=>c.states.includes('MD')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 35,000 MD consumers',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'\u2265 10,000 consumers AND \u226520% revenue from data sales',req:'10,000 + 20% data rev',pass:c=>c.consumers>=10000&&c.dataSale>=20}]},
+  {group:'US State',acronym:'TIPA',name:'Tennessee Information Protection Act',jur:'Tennessee',
+   penalties:'Civil: up to $7,500 per violation (treble damages if willful/knowing)',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'60 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Highest state consumer-count threshold (175,000) of any enacted state privacy law','Affirmative defense if a written privacy program reasonably conforms to the NIST Privacy Framework'],
+   logic:'state_AND_revenue_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Tennessee residents',req:'TN or ALL',pass:c=>c.states.includes('TN')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue \u2265 $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Controls data of \u2265 175,000 TN consumers',req:'175,000',reqNum:175000,pass:c=>c.consumers>=175000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND \u226550% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'INCDPA',name:'Indiana Consumer Data Protection Act',jur:'Indiana',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'30 days (permanent, does not sunset)',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Effective Jan 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Indiana residents',req:'IN or ALL',pass:c=>c.states.includes('IN')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 100,000 IN consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND \u226550% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'KCDPA',name:'Kentucky Consumer Data Protection Act',jur:'Kentucky',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'30 days (permanent, does not sunset)',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Effective Jan 1, 2026','Data Protection Assessments required for processing activities created on/after Jun 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Kentucky residents',req:'KY or ALL',pass:c=>c.states.includes('KY')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 100,000 KY consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'\u2265 25,000 consumers AND \u226550% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'RIDTPPA',name:'Rhode Island Data Transparency and Privacy Protection Act',jur:'Rhode Island',
+   penalties:'Civil: up to $10,000 per violation; $100\u2013$500 per violation for intentional disclosures',notif:'N/A \u2014 no fixed statutory deadline',resp:'45 days',cure:'None \u2014 no statutory cure right',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Also applies to commercial websites/ISPs with RI customers regardless of numerical thresholds','Effective Jan 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Rhode Island residents',req:'RI or ALL',pass:c=>c.states.includes('RI')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of \u2265 35,000 RI consumers',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'\u2265 10,000 consumers AND \u226520% revenue from data sales',req:'10,000 + 20% data rev',pass:c=>c.consumers>=10000&&c.dataSale>=20}]},
+  {group:'US State',acronym:'BIPA',name:'Illinois Biometric Information Privacy Act',jur:'Illinois',
+   penalties:'Civil: $1,000\u2013$5,000 per violation (per person, per method of collection, since the 2024 amendment \u2014 not per-scan); private right of action',notif:'N/A \u2014 no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Written policy for retention/destruction of biometric data','Informed written consent before collection','No profiting from biometric data','No consumer-count or revenue threshold \u2014 applies to any private entity','Only US state biometric law with a private right of action'],
+   logic:'AND',tests:[
+     {type:'state',label:'Operates in / collects biometric data of Illinois residents',req:'IL or ALL',pass:c=>c.states.includes('IL')||c.states.includes('ALL')},
+     {type:'datatype',label:'Collects biometric identifiers/information (fingerprints, face/voice/retina scans, etc.)',req:'Biometric',pass:c=>c.dataTypes.includes('Biometric')}]},
+  {group:'US State',acronym:'MHMDA',name:'Washington My Health My Data Act',jur:'Washington',
+   penalties:'Civil: up to $7,500 per incident (Consumer Protection Act); private right of action with treble damages up to $25,000',notif:'N/A \u2014 no fixed statutory deadline',resp:'N/A',cure:'None \u2014 no statutory cure right',
+   obls:['Consent for collection/sharing of consumer health data','Prohibition on geofencing around health facilities','No revenue or consumer-count threshold of any kind \u2014 broadest scope of any modeled US state law','"Consumer health data" is broader than HIPAA PHI (covers wellness, reproductive, and biometric-adjacent inferences) \u2014 the PHI data-type flag used here is a reasonable but imperfect proxy for that broader definition'],
+   logic:'AND',tests:[
+     {type:'state',label:'Conducts business in / targets Washington residents with consumer health data',req:'WA or ALL',pass:c=>c.states.includes('WA')||c.states.includes('ALL')},
+     {type:'datatype',label:'Processes consumer health data (approximated via PHI flag \u2014 actual scope is broader)',req:'PHI (proxy)',pass:c=>c.dataTypes.includes('PHI')}]},
   {group:'US State',acronym:'CCPA',name:'California Consumer Privacy Act',jur:'California',
    penalties:'Civil: $750/consumer or actual damages; $7,500 intentional',notif:'72 hrs',resp:'45 days',cure:'30 days',
    obls:['Right to know','Right to delete','Right to opt-out of sale','Privacy notice','Vendor contracts'],
@@ -697,9 +812,16 @@ function evalReg(reg,co){
     const thPass=tested.filter(t=>t.type!=='state').some(t=>t.passed);
     inScope=stPass&&thPass;
   }
+  else if(logic==='state_AND_revenue_AND_threshold'){
+    const stPass=tested.find(t=>t.type==='state')?.passed??false;
+    const revPass=tested.find(t=>t.type==='revenue')?.passed??false;
+    const thPass=tested.filter(t=>t.type!=='state'&&t.type!=='revenue').some(t=>t.passed);
+    inScope=stPass&&revPass&&thPass;
+  }
   let watch=false;
   if(!inScope){
     if(logic==='state_AND_threshold')watch=tested.find(t=>t.type==='state')?.passed??false;
+    if(logic==='state_AND_revenue_AND_threshold')watch=(tested.find(t=>t.type==='state')?.passed??false)&&(tested.find(t=>t.type==='revenue')?.passed??false);
     if(!watch) tested.forEach(t=>{
       if(t.reqNum&&!t.passed){
         if(t.type==='revenue'&&co.revenue>=t.reqNum*0.5)watch=true;
