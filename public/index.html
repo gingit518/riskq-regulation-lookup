@@ -135,7 +135,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 68 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 70 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -250,6 +250,20 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
       </select>
     </div>
 
+    <div class="sec-lbl">⚠️ Vendor / Investor / Employment Ties</div>
+    <div class="field" id="field-vendor">
+      <label>Countries of Concern<span class="source-badge src-manual" id="badge-vendor">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi — NOT customer markets, see hint)</span></label>
+      <select id="f-vendor" multiple>
+        <option value="China">China (incl. Hong Kong, Macau)</option>
+        <option value="Russia">Russia</option>
+        <option value="Iran">Iran</option>
+        <option value="NorthKorea">North Korea</option>
+        <option value="Cuba">Cuba</option>
+        <option value="Venezuela">Venezuela</option>
+      </select>
+      <div class="hint">Vendors, cloud/data processors, investors, or employers tied to these countries — NOT customer/market countries (use International Markets above for that). Drives the DOJ Bulk Sensitive Data Rule.</div>
+    </div>
+
     <div class="sec-lbl">🗄 Data Types Processed</div>
     <div class="field" id="field-data">
       <label>Select all that apply<span class="source-badge src-manual" id="badge-data">manual</span></label>
@@ -262,6 +276,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="Employee">Employee Data</option>
         <option value="Sensitive">Sensitive Personal Data</option>
         <option value="Biometric">Biometric Identifiers</option>
+        <option value="ChildrenU13">Children's Data (under 13)</option>
         <option value="CUI">Controlled Unclassified Info</option>
       </select>
     </div>
@@ -585,6 +600,21 @@ const REGS=[
    logic:'AND',tests:[
      {type:'state',label:'Conducts business in / targets Washington residents with consumer health data',req:'WA or ALL',pass:c=>c.states.includes('WA')||c.states.includes('ALL')},
      {type:'datatype',label:'Processes consumer health data (approximated via PHI flag \u2014 actual scope is broader)',req:'PHI (proxy)',pass:c=>c.dataTypes.includes('PHI')}]},
+  {group:'US Federal',acronym:'COPPA',name:"Children's Online Privacy Protection Act (as amended, effective Apr 22, 2026)",jur:'Federal (USA)',
+   penalties:'Civil: up to $53,088 per violation (FTC inflation-adjusted); calculated per affected child and duration \u2014 large-scale cases have exceeded $100M (e.g., Epic Games/Fortnite)',notif:'N/A \u2014 no breach-notification duty under COPPA itself',resp:'N/A',cure:'N/A',
+   obls:['Verifiable parental consent before collection (separate consent now required for third-party data sharing, per the Apr 2026 amendments)','Privacy policy disclosing data practices','Data minimization \u2014 no conditioning participation on excess collection','Written data retention policy + retention limits (new)','Written information security program with specified controls (new)','"Text plus" is now an authorized parental-consent verification method'],
+   logic:'OR',tests:[{type:'datatype',label:'Operates a site/service directed to, or has actual knowledge of collecting data from, children under 13',req:"Children's Data (under 13)",pass:c=>c.dataTypes.includes('ChildrenU13')}]},
+  {group:'US Federal',acronym:'DSP (Bulk Data Rule)',name:'Data Security Program \u2014 Preventing Access to U.S. Sensitive Personal Data and Government-Related Data by Countries of Concern (28 CFR Part 202 / EO 14117)',jur:'Federal (USA)',
+   penalties:'Civil: greater of $377,700 (inflation-adjusted, IEEPA) or 2x transaction value; Criminal (willful violations): up to $1,000,000 and/or 20 years imprisonment',notif:'N/A \u2014 not a breach-notification regime; requires audits, reporting, and recordkeeping for restricted transactions',resp:'N/A',cure:'N/A',
+   obls:['Prohibited transactions (data brokerage + bulk human genomic data with countries of concern/covered persons) are banned outright, not just restricted','Restricted transactions (vendor, employment, investment agreements) require a DOJ-compliant Data Security Program: CISA-aligned security requirements, annual audits, reporting','Statutory bulk thresholds by category: >100 persons (human genomic data), >1,000 (other \u2018omic/biometric/precise geolocation), >10,000 (health/financial), >100,000 (covered personal identifiers) \u2014 approximated here using existing data-type flags since this tool does not yet have distinct genomic/geolocation types: Biometric/Sensitive treated at the 1,000 tier, PHI/Financial/CardData at the 10,000 tier, PII at the 100,000 tier','Separate, lower-threshold \u201cgovernment-related data\u201d prong (any volume, tied to government personnel/facilities) is NOT modeled here','Full compliance required since Jul 8, 2025; DOJ enforcement actions begin Oct 6, 2026; rule has been amended multiple times through Apr 2026 \u2014 verify current text before relying on this determination'],
+   logic:'AND',tests:[
+     {type:'vendor_country',label:'Vendor, employment, or investment relationship with a country of concern (China/HK/Macau, Russia, Iran, North Korea, Cuba, Venezuela) or a covered person tied to them',req:'Country-of-concern relationship',pass:c=>(c.vendorCountries||[]).length>0},
+     {type:'datatype',label:'Processes bulk sensitive data above the category-specific DSP threshold (approximated: Biometric/Sensitive \u2265 1,000; PHI/Financial/CardData \u2265 10,000; PII \u2265 100,000 individuals)',req:'Category-dependent bulk threshold',pass:c=>{
+       const tiers={Biometric:1000,Sensitive:1000,PHI:10000,Financial:10000,CardData:10000,PII:100000};
+       const matched=c.dataTypes.filter(dt=>tiers[dt]).map(dt=>tiers[dt]);
+       if(matched.length===0)return false;
+       return c.consumers>=Math.min(...matched);
+     }}]},
   {group:'US State',acronym:'CCPA',name:'California Consumer Privacy Act',jur:'California',
    penalties:'Civil: $750/consumer or actual damages; $7,500 intentional',notif:'72 hrs',resp:'45 days',cure:'30 days',
    obls:['Right to know','Right to delete','Right to opt-out of sale','Privacy notice','Vendor contracts'],
@@ -799,6 +829,7 @@ function evalReg(reg,co){
     else if(t.type==='industry')compVal=co.industry||'(not set)';
     else if(t.type==='state')compVal=co.states.join(', ')||'(none)';
     else if(t.type==='country')compVal=co.intl.join(', ')||'(none)';
+    else if(t.type==='vendor_country')compVal=(co.vendorCountries||[]).join(', ')||'(none)';
     else if(t.type==='datatype')compVal=co.dataTypes.join(', ')||'(none)';
     else compVal='Yes';
     return{...t,passed,compVal};
@@ -841,9 +872,9 @@ function runAnalysis(){
   const consumers=parseInt(document.getElementById('f-consumers').value)||0;
   const employees=parseInt(document.getElementById('f-employees').value)||0;
   const industry=document.getElementById('f-industry').value;
-  const states=sel('f-states'),intl=sel('f-intl'),dataTypes=sel('f-data');
+  const states=sel('f-states'),intl=sel('f-intl'),dataTypes=sel('f-data'),vendorCountries=sel('f-vendor');
   if(!name){alert('Please enter a company name.');return;}
-  const co={name,revenue,dataSale,consumers,employees,industry,states,intl,dataTypes};
+  const co={name,revenue,dataSale,consumers,employees,industry,states,intl,dataTypes,vendorCountries};
   const ev=REGS.map(r=>({reg:r,...evalReg(r,co)}));
   const inS=ev.filter(e=>e.inScope),wa=ev.filter(e=>e.watch),out=ev.filter(e=>!e.inScope&&!e.watch);
 
