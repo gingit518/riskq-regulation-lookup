@@ -73,6 +73,8 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 .co-stat .v{font-family:var(--font-h);font-size:18px;font-weight:700;}
 .co-stat .l{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
 .sum-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.pdf-btn{margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:0 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.pdf-btn:hover{opacity:.85;}
 .sum-box{border-radius:7px;padding:10px 14px;flex:1;min-width:80px;text-align:center;}
 .sum-box .n{font-family:var(--font-h);font-size:26px;font-weight:700;}
 .sum-box .l{font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
@@ -132,6 +134,8 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 @media print{.fp,.hdr,.key-banner{display:none;}.layout{display:block;}.rp{padding:0;}.rc-body{display:block!important;}}
 </style>
 </head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <body>
 
 <div class="hdr">
@@ -479,6 +483,7 @@ async function autoLookup(){
 }
 
 // ── REGULATION DATA ──────────────────────────────────────────────────────────
+let lastAnalysis=null;
 const REGS=[
   {group:'US Federal',acronym:'FTC Act',name:'Federal Trade Commission Act',jur:'Federal (USA)',
    penalties:'Civil: $Billions — unfair/deceptive data practices',notif:'72 hrs',resp:'N/A',cure:'N/A',
@@ -1035,6 +1040,8 @@ function runAnalysis(){
     <div class="sum-box s-in"><div class="n">${inS.length}</div><div class="l">In Scope ✓</div></div>
     <div class="sum-box s-watch"><div class="n">${wa.length}</div><div class="l">Watch ⚠</div></div>
     <div class="sum-box s-out"><div class="n">${out.length}</div><div class="l">Not in Scope</div></div>
+  </div>
+    <button class="pdf-btn" onclick="downloadPdfReport()">📄 Download PDF Report</button>
   </div>`;
 
   let cards='';
@@ -1067,7 +1074,119 @@ function runAnalysis(){
     });
   });
 
+  lastAnalysis={co,ev,inS,wa,out};
   document.getElementById('results-panel').innerHTML=coCard+sumBar+cards;
+}
+
+function downloadPdfReport(){
+  if(!lastAnalysis){alert('Run an analysis first.');return;}
+  if(!window.jspdf){alert('PDF library did not load — check your connection and try again.');return;}
+  const {co,inS,wa,out}=lastAnalysis;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'pt',format:'letter'});
+  const pageW=doc.internal.pageSize.getWidth();
+  const marginX=40;
+  let y=48;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(15,23,60);
+  doc.text('RiskQ Regulatory Intelligence',marginX,y);
+  y+=20;
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(90,98,120);
+  doc.text('Regulatory Scope Report',marginX,y);
+  y+=14;
+  doc.setFontSize(9);
+  doc.text('Generated '+new Date().toISOString().slice(0,10)+' · '+REGS.length+' regulations checked',marginX,y);
+  y+=22;
+
+  doc.setFillColor(240,244,255);
+  doc.rect(marginX,y-10,pageW-2*marginX,42,'F');
+  doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(60,68,90);
+  const disclaimer='This report provides regulatory intelligence and decision support based on the company inputs provided at the time of generation. It is not legal, compliance, audit, or regulatory advice, and it does not constitute a determination that any law does or does not apply. Verify applicability with qualified counsel before relying on this output.';
+  const discLines=doc.splitTextToSize(disclaimer,pageW-2*marginX-16);
+  doc.text(discLines,marginX+8,y+4);
+  y+=42+discLines.length*2;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(15,23,60);
+  doc.text('Company Profile',marginX,y);
+  y+=16;
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(30,38,60);
+  const profileRows=[
+    ['Company',co.name||'—'],
+    ['Industry',co.industry||'—'],
+    ['Revenue',co.revenue?('$'+co.revenue+'M'):'—'],
+    ['Employees',co.employees?fmtN(co.employees):'—'],
+    ['Consumers',co.consumers?fmtN(co.consumers):'—'],
+    ['Data Sale %',co.dataSale?co.dataSale+'%':'—'],
+    ['US States',co.states&&co.states.length?co.states.join(', '):'—'],
+    ['International Markets',co.intl&&co.intl.length?co.intl.join(', '):'—'],
+    ['Data Types',co.dataTypes&&co.dataTypes.length?co.dataTypes.join(', '):'—'],
+    ['Vendor/Investor Countries of Concern',co.vendorCountries&&co.vendorCountries.length?co.vendorCountries.join(', '):'—'],
+    ['AI System Roles',co.aiRoles&&co.aiRoles.length?co.aiRoles.join(', '):'—'],
+    ['Marketing Channels',co.marketingChannels&&co.marketingChannels.length?co.marketingChannels.join(', '):'—']
+  ];
+  doc.autoTable({
+    startY:y,margin:{left:marginX,right:marginX},
+    body:profileRows,theme:'plain',
+    styles:{fontSize:9,cellPadding:2},
+    columnStyles:{0:{fontStyle:'bold',cellWidth:150,textColor:[90,98,120]},1:{cellWidth:pageW-2*marginX-150}}
+  });
+  y=doc.lastAutoTable.finalY+18;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(15,23,60);
+  doc.text('Summary',marginX,y);
+  y+=6;
+  doc.autoTable({
+    startY:y+8,margin:{left:marginX,right:marginX},
+    head:[['Checked','In Scope','Watch','Out of Scope']],
+    body:[[String(REGS.length),String(inS.length),String(wa.length),String(out.length)]],
+    theme:'grid',styles:{fontSize:9.5,halign:'center',cellPadding:5},
+    headStyles:{fillColor:[15,23,60],textColor:255}
+  });
+  y=doc.lastAutoTable.finalY+20;
+
+  function regTable(title,list,color){
+    if(!list.length)return;
+    if(y>doc.internal.pageSize.getHeight()-100){doc.addPage();y=48;}
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(color[0],color[1],color[2]);
+    doc.text(title+' ('+list.length+')',marginX,y);
+    y+=8;
+    const body=list.map(e=>{
+      const trigger=e.tests.filter(t=>t.passed).map(t=>t.label).join('; ')||e.tests.map(t=>t.label).join('; ');
+      return[e.reg.acronym,e.reg.jur,e.reg.penalties,trigger];
+    });
+    doc.autoTable({
+      startY:y+6,margin:{left:marginX,right:marginX},
+      head:[['Reg','Jurisdiction','Penalties','Trigger']],
+      body,theme:'striped',styles:{fontSize:7.5,cellPadding:4,overflow:'linebreak'},
+      headStyles:{fillColor:color,textColor:255,fontSize:8},
+      columnStyles:{0:{cellWidth:60,fontStyle:'bold'},1:{cellWidth:110},2:{cellWidth:170},3:{cellWidth:pageW-2*marginX-340}}
+    });
+    y=doc.lastAutoTable.finalY+20;
+  }
+
+  regTable('In Scope',inS,[21,128,61]);
+  regTable('Watch / Near-Miss',wa,[180,120,10]);
+
+  if(out.length){
+    if(y>doc.internal.pageSize.getHeight()-80){doc.addPage();y=48;}
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(120,120,130);
+    doc.text('Not in Scope ('+out.length+')',marginX,y);
+    y+=14;
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,105,120);
+    const outLine=doc.splitTextToSize(out.map(e=>e.reg.acronym).join(', '),pageW-2*marginX);
+    doc.text(outLine,marginX,y);
+  }
+
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,145,160);
+    doc.text('RiskQ Regulatory Intelligence — decision support, not legal advice',marginX,doc.internal.pageSize.getHeight()-20);
+    doc.text('Page '+i+' of '+pageCount,pageW-marginX,doc.internal.pageSize.getHeight()-20,{align:'right'});
+  }
+
+  const safeName=(co.name||'Company').replace(/[^a-z0-9]/gi,'_');
+  doc.save('RiskQ_Regulatory_Scope_'+safeName+'.pdf');
 }
 
 function clearAll(){
