@@ -135,7 +135,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 78 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 82 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -246,7 +246,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="Japan">Japan</option><option value="China">China</option>
         <option value="SouthKorea">South Korea</option><option value="Thailand">Thailand</option>
         <option value="NewZealand">New Zealand</option><option value="Israel">Israel</option><option value="Singapore">Singapore</option>
-        <option value="Bahrain">Bahrain</option><option value="Egypt">Egypt</option><option value="Lebanon">Lebanon</option><option value="Qatar">Qatar</option><option value="QatarQFC">Qatar (QFC)</option><option value="Turkey">Turkey</option><option value="UAE">United Arab Emirates</option><option value="DIFC">UAE (DIFC)</option><option value="Ukraine">Ukraine</option><option value="Argentina">Argentina</option><option value="Chile">Chile</option><option value="Colombia">Colombia</option><option value="Mexico">Mexico</option><option value="Uruguay">Uruguay</option><option value="Malaysia">Malaysia</option><option value="Nepal">Nepal</option><option value="Vietnam">Vietnam</option><option value="SouthAfrica">South Africa</option><option value="Nigeria">Nigeria</option><option value="Kenya">Kenya</option><option value="Switzerland">Switzerland</option>
+        <option value="Bahrain">Bahrain</option><option value="Egypt">Egypt</option><option value="Lebanon">Lebanon</option><option value="Qatar">Qatar</option><option value="QatarQFC">Qatar (QFC)</option><option value="Turkey">Turkey</option><option value="UAE">United Arab Emirates</option><option value="DIFC">UAE (DIFC)</option><option value="Ukraine">Ukraine</option><option value="Argentina">Argentina</option><option value="Chile">Chile</option><option value="Colombia">Colombia</option><option value="Mexico">Mexico</option><option value="Uruguay">Uruguay</option><option value="Malaysia">Malaysia</option><option value="Nepal">Nepal</option><option value="Vietnam">Vietnam</option><option value="SouthAfrica">South Africa</option><option value="Nigeria">Nigeria</option><option value="Kenya">Kenya</option><option value="Switzerland">Switzerland</option><option value="SaudiArabia">Saudi Arabia</option>
       </select>
     </div>
 
@@ -277,6 +277,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="Sensitive">Sensitive Personal Data</option>
         <option value="Biometric">Biometric Identifiers</option>
         <option value="ChildrenU13">Children's Data (under 13)</option>
+        <option value="Genetic">Genetic Information</option>
         <option value="CUI">Controlled Unclassified Info</option>
       </select>
     </div>
@@ -502,6 +503,16 @@ const REGS=[
    logic:'AND',tests:[
      {type:'industry',label:'Operates in a CIRCIA-covered critical infrastructure sector (chemical, commercial facilities, communications, critical manufacturing, dams, defense industrial base, emergency services, energy, financial services, food & agriculture, government facilities, healthcare, IT, nuclear, transportation, water/wastewater)',req:'critical infrastructure sector',pass:c=>['chemical','commercial','telecom','manufacturing','dams','defense','emergency','energy','financial','insurance','foodag','government','healthcare','tech','nuclear','transportation','water'].includes(c.industry)},
      {type:'employees',label:'Exceeds SBA small-business size standard (approximated as \u2265100 employees \u2014 actual threshold varies by sector)',reqNum:100,req:'~100+ employees (sector-dependent)',pass:c=>c.employees>=100}]},
+  {group:'US Federal',acronym:'NERC CIP',name:'NERC Critical Infrastructure Protection Standards',jur:'Federal (USA) + Canada \u2014 Bulk Electric System',
+   penalties:'Civil: FERC-authorized penalties up to $1,000,000 per violation per day, scaled to severity, grid-reliability risk, and compliance history',notif:'Per CIP-008 Incident Reporting requirements',resp:'N/A',cure:'N/A',
+   obls:['13 active CIP standards (CIP-002 through CIP-015): BES Cyber System categorization, security management controls, personnel/training, electronic security perimeters, physical security, system security management, incident reporting, recovery plans, configuration change management, information protection, inter-control-center communications, supply chain risk management, internal network security monitoring','CIP-003-9 (low-impact BES Cyber Systems, vendor remote access/supply chain) enforcement began Apr 1, 2026','CIP-012-2 (real-time operational data between control centers) effective Jul 1, 2026','CIP-015-1 effective Sep 2, 2025, phased compliance through Sep 2030'],
+   logic:'OR',tests:[{type:'industry',label:'Owns/operates assets connected to the Bulk Electric System (utilities, transmission operators, distribution providers, generation owners)',req:'energy',pass:c=>c.industry==='energy'}]},
+  {group:'US Federal',acronym:'FTC HBNR',name:'FTC Health Breach Notification Rule',jur:'Federal (USA)',
+   penalties:'Civil: up to $51,744 per violation (2026, via FTC Act Section 18 unfair/deceptive practices)',notif:'60 days to affected consumers; immediate FTC notification if breach affects 500+ people',resp:'N/A',cure:'N/A',
+   obls:['Applies to health apps/connected devices NOT covered by HIPAA \u2014 fitness trackers, period trackers, mental wellness tools, direct-to-consumer telehealth not tied to a covered healthcare provider','Breach notification to consumers + FTC + (500+ affected) media','Complements HIPAA rather than overlapping it \u2014 excluded here if the company is already HIPAA-covered'],
+   logic:'AND',tests:[
+     {type:'datatype',label:'Processes personal health records / consumer health data',req:'PHI',pass:c=>c.dataTypes.includes('PHI')},
+     {type:'industry',label:'Not already a HIPAA-covered entity (healthcare/health-insurance industry is covered by HIPAA instead)',req:'non-healthcare industry',pass:c=>c.industry!=='healthcare'}]},
   {group:'US State',acronym:'UCPA',name:'Utah Consumer Privacy Act',jur:'Utah',
    penalties:'Civil: up to $7,500 per violation',notif:'As soon as possible',resp:'45 days',cure:'30 days',
    obls:['Consumer rights (access/delete/portability/opt-out of sale & targeted ads)','Privacy notice','Sensitive data processing consent','Right to correct inaccurate data effective July 1, 2026'],
@@ -612,6 +623,12 @@ const REGS=[
    logic:'AND',tests:[
      {type:'state',label:'Conducts business in / targets Washington residents with consumer health data',req:'WA or ALL',pass:c=>c.states.includes('WA')||c.states.includes('ALL')},
      {type:'datatype',label:'Processes consumer health data (approximated via PHI flag \u2014 actual scope is broader)',req:'PHI (proxy)',pass:c=>c.dataTypes.includes('PHI')}]},
+  {group:'US State',acronym:'GIPA',name:'Illinois Genetic Information Privacy Act',jur:'Illinois',
+   penalties:'Civil: $2,500 per negligent violation; $15,000 per intentional/reckless violation, plus attorney fees; private right of action \u2014 100+ class actions filed since 2023',notif:'N/A \u2014 no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Prohibits employers/insurers/licensing agencies from soliciting, requiring, or purchasing genetic testing or genetic information as a condition of employment, licensure, or membership','No consumer-count or revenue threshold \u2014 applies to any employer/organization employing workers in Illinois','BIPA\u2019s genetic-data sibling \u2014 same state, same employer-context exposure, same private-right-of-action risk profile'],
+   logic:'AND',tests:[
+     {type:'state',label:'Employs workers in / operates in Illinois',req:'IL or ALL',pass:c=>c.states.includes('IL')||c.states.includes('ALL')},
+     {type:'datatype',label:'Collects/uses genetic testing or genetic information',req:'Genetic',pass:c=>c.dataTypes.includes('Genetic')}]},
   {group:'US Federal',acronym:'COPPA',name:"Children's Online Privacy Protection Act (as amended, effective Apr 22, 2026)",jur:'Federal (USA)',
    penalties:'Civil: up to $53,088 per violation (FTC inflation-adjusted); calculated per affected child and duration \u2014 large-scale cases have exceeded $100M (e.g., Epic Games/Fortnite)',notif:'N/A \u2014 no breach-notification duty under COPPA itself',resp:'N/A',cure:'N/A',
    obls:['Verifiable parental consent before collection (separate consent now required for third-party data sharing, per the Apr 2026 amendments)','Privacy policy disclosing data practices','Data minimization \u2014 no conditioning participation on excess collection','Written data retention policy + retention limits (new)','Written information security program with specified controls (new)','"Text plus" is now an authorized parental-consent verification method'],
@@ -697,9 +714,9 @@ const REGS=[
    penalties:'Civil: Greater of 4% annual global revenue or €20M',notif:'72 hrs',resp:'30 days',cure:'N/A',
    obls:['Lawful basis','DPO (where required)','DPIAs','8 data subject rights','Int\'l transfer restrictions','Vendor DPAs'],
    logic:'OR',tests:[{type:'country',label:'Processes personal data of EU/EEA residents',req:'EU',pass:c=>c.intl.includes('EU')}]},
-  {group:'International',acronym:'UK DPA',name:'UK Data Protection Act 2018 / UK GDPR',jur:'United Kingdom',
-   penalties:'Civil: Up to £17.5M or 4% global turnover',notif:'72 hrs',resp:'30 days',cure:'N/A',
-   obls:['All GDPR equivalents','UK transfer mechanisms','ICO registration'],
+  {group:'International',acronym:'UK DPA',name:'UK Data Protection Act 2018 / UK GDPR (as amended by the Data (Use and Access) Act 2025)',jur:'United Kingdom',
+   penalties:'Civil: Up to \u00a317.5M or 4% global turnover',notif:'72 hrs',resp:'30 days',cure:'N/A',
+   obls:['All GDPR equivalents','UK transfer mechanisms','ICO registration','New \u201crecognised legitimate interests\u201d lawful basis (national security, crime detection, safeguarding) \u2014 effective Feb 5, 2026','Reformulated international-transfer adequacy test (\u201cnot materially lower\u201d standard, replacing the prior \u201cessentially equivalent\u201d test) \u2014 effective Feb 5, 2026','New \u201cchildren\u2019s higher protection matters\u201d requirements for services accessed by children \u2014 effective Feb 5, 2026','Formal right to complain to controllers (30-day acknowledgment) + expanded ICO powers: binding assessment notices and compelled-interview notices \u2014 effective Jun 19, 2026','DSAR responses now scoped to \u201creasonable and proportionate\u201d searches, with clock-pause for clarifying info'],
    logic:'OR',tests:[{type:'country',label:'Processes personal data of UK residents',req:'UK',pass:c=>c.intl.includes('UK')}]},
   {group:'International',acronym:'PIPEDA',name:'Personal Information Protection and Electronic Documents Act',jur:'Canada',
    penalties:'Civil: Up to CAD $100,000',notif:'ASAP (significant risk)',resp:'Reasonable',cure:'N/A',
@@ -729,10 +746,10 @@ const REGS=[
    penalties:'Civil: up to greater of AUD $50M, 3x benefit obtained, or 30% of adjusted turnover',notif:'ASAP (eligible data breach)',resp:'30 days',cure:'N/A',
    obls:['Australian Privacy Principles (APPs) compliance','Notifiable Data Breach scheme','Privacy policy','Cross-border transfer accountability','Note: AUD $3M turnover small-business exemption currently exists, under active repeal as of 2026'],
    logic:'OR',tests:[{type:'country',label:'Processes personal data of Australian residents',req:'Australia',pass:c=>c.intl.includes('Australia')}]},
-  {group:'International',acronym:'DPDPA (India)',name:'Digital Personal Data Protection Act 2023',jur:'India',
-   penalties:'Civil: up to ₹250 crore (~$30M) per instance',notif:'Without unreasonable delay',resp:'Reasonable time',cure:'N/A',
-   obls:['Consent / legitimate use basis','Data Principal rights (access, correction, erasure)','DPO required if classified Significant Data Fiduciary','Breach notification to Data Protection Board'],
-   logic:'OR',tests:[{type:'country',label:'Processes digital personal data of, or offers goods/services to, people in India',req:'India',pass:c=>c.intl.includes('India')}]},
+  {group:'International',acronym:'DPDPA (India)',name:'Digital Personal Data Protection Act 2023 (DPDP Rules notified Nov 13, 2025)',jur:'India',
+   penalties:'Civil: up to \u20b9250 crore (~$30M) per instance \u2014 NOT yet enforceable; see phased timeline below',notif:'Without unreasonable delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent / legitimate use basis','Data Principal rights (access, correction, erasure)','DPO required if classified Significant Data Fiduciary','Breach notification to Data Protection Board','PHASED TIMELINE (do not treat as fully live today): Phase 1 (Nov 13, 2025) \u2014 only the Data Protection Board of India\u2019s establishment is in effect; Phase 2 (Nov 13, 2026) \u2014 consent-manager provisions take effect; Phase 3 (May 13, 2027) \u2014 the substantive compliance obligations listed above (and the penalties above) become enforceable'],
+   logic:'OR',tests:[{type:'country',label:'Processes digital personal data of, or offers goods/services to, people in India (substantive obligations phase in through May 13, 2027)',req:'India',pass:c=>c.intl.includes('India')}]},
   {group:'International',acronym:'PDPA (Thailand)',name:'Personal Data Protection Act B.E. 2562 (2019)',jur:'Thailand',
    penalties:'Administrative: up to THB 5M; Criminal: up to 1 yr + THB 1M fine; punitive civil damages up to 2x actual damages',notif:'72 hrs',resp:'Reasonable time',cure:'N/A',
    obls:['Consent for collection/use/disclosure','Data subject rights','DPO required if large-scale processing','Cross-border transfer restrictions'],
@@ -842,6 +859,10 @@ const REGS=[
    penalties:'Criminal only (unlike GDPR-style regimes, there is no administrative fine): up to CHF 250,000, imposed on the responsible INDIVIDUAL rather than the company; no publicly reported convictions as of May 2026',notif:'As soon as possible',resp:'30 days',cure:'N/A',
    obls:['Lawful basis / transparency','Data Protection Impact Assessments for high-risk processing','Breach notification to the FDPIC','Cross-border transfer adequacy \u2014 Switzerland is NOT in the EU/EEA, so a separate adequacy analysis is required even for otherwise GDPR-compliant companies','2025\u20132026 FDPIC enforcement focus: cross-border transfer compliance and breach-notification failures'],
    logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Switzerland',req:'Switzerland',pass:c=>c.intl.includes('Switzerland')}]},
+  {group:'International',acronym:'PDPL (Saudi Arabia)',name:'Personal Data Protection Law',jur:'Saudi Arabia',
+   penalties:'Administrative: up to SAR 5,000,000 (~$1.3M) per violation, doubled for repeat offenses, plus potential asset confiscation; Criminal (sensitive-data disclosure with harmful intent): up to 2 years imprisonment and/or SAR 3,000,000 fine',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent / lawful basis','Data subject rights','Cross-border transfer restrictions (SDAIA approval)','Compliance grace period expired Sep 14, 2024 \u2014 fully enforceable now; SDAIA had issued 48 formal enforcement decisions as of 2026'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Saudi Arabia (extraterritorial)',req:'SaudiArabia',pass:c=>c.intl.includes('SaudiArabia')}]},
   {group:'International',acronym:'EU AI Act (Prohibited)',name:'Artificial Intelligence Act \u2014 Prohibited Practices (Art. 5)',jur:'EU / EEA',
    penalties:'Up to \u20ac35,000,000 or 7% of global annual turnover \u2014 the highest tier of any regulation in this tool',notif:'N/A',resp:'N/A',cure:'N/A',
    obls:['Prohibition is absolute \u2014 no compliance path, only cessation of the practice','Covers social scoring, manipulative/subliminal techniques causing harm, real-time remote biometric identification in public spaces for law enforcement, and emotion inference in workplace/education contexts','In force and enforceable since Feb 2, 2025 \u2014 the first AI Act provision to take effect'],

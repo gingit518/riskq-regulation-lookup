@@ -36,7 +36,7 @@ Use exactly these fields:
   "industry": "<exactly one of: healthcare | financial | insurance | education | defense | retail | tech | telecom | media | energy | water | transportation | chemical | manufacturing | foodag | commercial | emergency | dams | nuclear | government | other>",
   "industry_notes": "<one sentence describing what the company does>",
   "us_states": ["<2-letter state codes where they have significant operations, or use ALL if they operate nationally>"],
-  "international": ["<from this list only: EU, UK, Canada, Australia, Brazil, India, Japan, China, SouthKorea, Thailand, NewZealand, Israel, Singapore, Bahrain, Egypt, Lebanon, Qatar, QatarQFC, Turkey, UAE, DIFC, Ukraine, Argentina, Chile, Colombia, Mexico, Uruguay, Malaysia, Nepal, Vietnam, SouthAfrica, Nigeria, Kenya, Switzerland>"],
+  "international": ["<from this list only: EU, UK, Canada, Australia, Brazil, India, Japan, China, SouthKorea, Thailand, NewZealand, Israel, Singapore, Bahrain, Egypt, Lebanon, Qatar, QatarQFC, Turkey, UAE, DIFC, Ukraine, Argentina, Chile, Colombia, Mexico, Uruguay, Malaysia, Nepal, Vietnam, SouthAfrica, Nigeria, Kenya, Switzerland, SaudiArabia>"],
   "data_types": ["<from this list only: PII, PHI, Financial, Student, CardData, Employee, Sensitive, CUI>"],
   "data_sale_pct": <number 0-100: estimated % of revenue from selling or sharing personal data — 0 for most companies>,
   "consumers_estimate": <number: estimated total individuals whose data they process>,
