@@ -135,7 +135,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 70 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 74 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -246,7 +246,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="Japan">Japan</option><option value="China">China</option>
         <option value="SouthKorea">South Korea</option><option value="Thailand">Thailand</option>
         <option value="NewZealand">New Zealand</option><option value="Israel">Israel</option><option value="Singapore">Singapore</option>
-        <option value="Bahrain">Bahrain</option><option value="Egypt">Egypt</option><option value="Lebanon">Lebanon</option><option value="Qatar">Qatar</option><option value="QatarQFC">Qatar (QFC)</option><option value="Turkey">Turkey</option><option value="UAE">United Arab Emirates</option><option value="DIFC">UAE (DIFC)</option><option value="Ukraine">Ukraine</option><option value="Argentina">Argentina</option><option value="Chile">Chile</option><option value="Colombia">Colombia</option><option value="Mexico">Mexico</option><option value="Uruguay">Uruguay</option><option value="Malaysia">Malaysia</option><option value="Nepal">Nepal</option><option value="Vietnam">Vietnam</option>
+        <option value="Bahrain">Bahrain</option><option value="Egypt">Egypt</option><option value="Lebanon">Lebanon</option><option value="Qatar">Qatar</option><option value="QatarQFC">Qatar (QFC)</option><option value="Turkey">Turkey</option><option value="UAE">United Arab Emirates</option><option value="DIFC">UAE (DIFC)</option><option value="Ukraine">Ukraine</option><option value="Argentina">Argentina</option><option value="Chile">Chile</option><option value="Colombia">Colombia</option><option value="Mexico">Mexico</option><option value="Uruguay">Uruguay</option><option value="Malaysia">Malaysia</option><option value="Nepal">Nepal</option><option value="Vietnam">Vietnam</option><option value="SouthAfrica">South Africa</option><option value="Nigeria">Nigeria</option><option value="Kenya">Kenya</option><option value="Switzerland">Switzerland</option>
       </select>
     </div>
 
@@ -814,6 +814,22 @@ const REGS=[
      {type:'country',label:'Operates in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
      {type:'industry',label:'Annex I/II sector: energy, transport, health, water, digital infrastructure/ICT service management, chemical, manufacturing, food, or public administration (excludes financial/insurance \u2014 see DORA)',req:'NIS2 sector',pass:c=>['healthcare','energy','water','transportation','tech','telecom','chemical','manufacturing','foodag','government'].includes(c.industry)},
      {type:'employees',label:'Medium+ enterprise (\u226550 employees or \u2265\u20ac10M turnover, treated at parity to $10M here)',reqNum:50,req:'50+ employees or \u20ac10M+ turnover',pass:c=>c.employees>=50||c.revenue>=10}]},
+  {group:'International',acronym:'POPIA',name:'Protection of Personal Information Act',jur:'South Africa',
+   penalties:'Civil: administrative fines up to ZAR 10,000,000 (~$550,000) via infringement notices; Criminal: up to 10 years imprisonment for serious offenses (obstructing the Information Regulator, unlawful acts re: account numbers, enforcement-notice non-compliance)',notif:'As soon as reasonably possible',resp:'Reasonable time',cure:'N/A',
+   obls:['Lawful processing (8 conditions)','Information Officer registration','Data subject access/correction rights','Cross-border transfer restrictions','2026: Information Regulator has shifted to proactive compliance monitoring and industry-wide assessments, not just complaint-driven enforcement'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal information within South Africa',req:'SouthAfrica',pass:c=>c.intl.includes('SouthAfrica')}]},
+  {group:'International',acronym:'NDPA (Nigeria)',name:'Nigeria Data Protection Act 2023',jur:'Nigeria',
+   penalties:'Civil: greater of \u20a610,000,000 or 2% of annual gross revenue for major violations; demonstrated enforcement includes a \u20a6766.2M fine against MultiChoice Nigeria and a $220M fine against Meta',notif:'72 hrs',resp:'Reasonable time',cure:'N/A',
+   obls:['Lawful basis / consent','Data Protection Officer / Compliance Officer','NDPC registration (data controllers/processors of major importance)','Data subject rights','Cross-border transfer adequacy'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals residing in Nigeria (extraterritorial)',req:'Nigeria',pass:c=>c.intl.includes('Nigeria')}]},
+  {group:'International',acronym:'DPA (Kenya)',name:'Data Protection Act, 2019',jur:'Kenya',
+   penalties:'Administrative: up to KES 5,000,000 or 1% of annual turnover for controllers (whichever is lower under current law \u2014 a pending 2025 amendment bill would flip to whichever is higher); KES 3,000,000 or 0.5% turnover for processors; criminal penalties up to KES 3,000,000 and/or 10 years imprisonment for specified offenses',notif:'72 hrs',resp:'Reasonable time',cure:'N/A',
+   obls:['ODPC registration (where required)','Consent / lawful basis','Data Protection Officer (where required)','Data subject rights','Cross-border transfer adequacy'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Kenya',req:'Kenya',pass:c=>c.intl.includes('Kenya')}]},
+  {group:'International',acronym:'nFADP',name:'Federal Act on Data Protection (revised, in force since Sep 1, 2023)',jur:'Switzerland',
+   penalties:'Criminal only (unlike GDPR-style regimes, there is no administrative fine): up to CHF 250,000, imposed on the responsible INDIVIDUAL rather than the company; no publicly reported convictions as of May 2026',notif:'As soon as possible',resp:'30 days',cure:'N/A',
+   obls:['Lawful basis / transparency','Data Protection Impact Assessments for high-risk processing','Breach notification to the FDPIC','Cross-border transfer adequacy \u2014 Switzerland is NOT in the EU/EEA, so a separate adequacy analysis is required even for otherwise GDPR-compliant companies','2025\u20132026 FDPIC enforcement focus: cross-border transfer compliance and breach-notification failures'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Switzerland',req:'Switzerland',pass:c=>c.intl.includes('Switzerland')}]},
 ];
 
 // ── EVAL ─────────────────────────────────────────────────────────────────────
