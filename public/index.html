@@ -122,7 +122,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 22 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 26 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -210,7 +210,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="Brazil">Brazil</option><option value="India">India</option>
         <option value="Japan">Japan</option><option value="China">China</option>
         <option value="SouthKorea">South Korea</option><option value="Thailand">Thailand</option>
-        <option value="NewZealand">New Zealand</option><option value="Israel">Israel</option>
+        <option value="NewZealand">New Zealand</option><option value="Israel">Israel</option><option value="Singapore">Singapore</option>
       </select>
     </div>
 
@@ -388,6 +388,16 @@ const REGS=[
    penalties:'Civil penalties + enforcement actions',notif:'96 hrs (material)',resp:'Annual report',cure:'N/A',
    obls:['Material incident disclosure (4 days)','Annual cyber risk report','Board oversight disclosure'],
    logic:'OR',tests:[{type:'industry',label:'SEC-registered / publicly traded financial services',req:'financial',pass:c=>c.industry==='financial'}]},
+  {group:'US Federal',acronym:'FCC',name:'FCC Cybersecurity & CPNI Rules',jur:'Federal (USA)',
+   penalties:'Civil: forfeitures per violation, case-by-case',notif:'7 days (CPNI breach)',resp:'N/A',cure:'N/A',
+   obls:['CPNI safeguards','Breach notification to law enforcement + customers','Annual compliance certification'],
+   logic:'OR',tests:[{type:'industry',label:'Telecommunications carrier / VoIP provider',req:'telecom',pass:c=>c.industry==='telecom'}]},
+  {group:'US Federal',acronym:'FISMA',name:'Federal Information Security Modernization Act',jur:'Federal (USA)',
+   penalties:'Loss of contract / Authorization to Operate',notif:'Per agency incident-reporting rules',resp:'N/A',cure:'N/A',
+   obls:['System Security Plan (SSP)','NIST 800-53 controls','Continuous monitoring','Authorization to Operate'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Federal agency or contractor operating a federal information system',req:'defense',pass:c=>c.industry==='defense'},
+     {type:'datatype',label:'Handles federal / Controlled Unclassified Info',req:'CUI',pass:c=>c.dataTypes.includes('CUI')||c.industry==='defense'}]},
   {group:'US State',acronym:'CCPA',name:'California Consumer Privacy Act',jur:'California',
    penalties:'Civil: $750/consumer or actual damages; $7,500 intentional',notif:'72 hrs',resp:'45 days',cure:'30 days',
    obls:['Right to know','Right to delete','Right to opt-out of sale','Privacy notice','Vendor contracts'],
@@ -474,6 +484,14 @@ const REGS=[
    penalties:'Civil: Up to ¥50M or 5% annual revenue',notif:'Promptly',resp:'Yes',cure:'N/A',
    obls:['Separate consent for sensitive PI','Data localization','DPO required','CAC cross-border approval'],
    logic:'OR',tests:[{type:'country',label:'Processes personal information of PRC residents',req:'China',pass:c=>c.intl.includes('China')}]},
+  {group:'International',acronym:'PIPA',name:'Personal Information Protection Act (South Korea)',jur:'South Korea',
+   penalties:'Civil: up to 3% of relevant revenue; criminal penalties for serious violations',notif:'72 hrs',resp:'10 days',cure:'N/A',
+   obls:['Consent for collection/use','Data subject access/correction/deletion rights','Domestic representative (if large-scale)','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Targets Korean data subjects or has direct/significant impact on them',req:'SouthKorea',pass:c=>c.intl.includes('SouthKorea')}]},
+  {group:'International',acronym:'PDPA',name:'Personal Data Protection Act 2012 (Singapore)',jur:'Singapore',
+   penalties:'Civil: up to S$1M or 10% of Singapore turnover (if turnover >S$10M), whichever is higher',notif:'ASAP, within 3 days of assessment',resp:'30 days',cure:'N/A',
+   obls:['Consent for collection/use/disclosure','Data Protection Officer','Access & correction rights','Breach notification to PDPC'],
+   logic:'OR',tests:[{type:'country',label:'Collects/uses/discloses personal data of Singapore residents',req:'Singapore',pass:c=>c.intl.includes('Singapore')}]},
 ];
 
 // ── EVAL ─────────────────────────────────────────────────────────────────────
