@@ -92,6 +92,19 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 .rc-info{flex:1;}
 .rc-name{font-size:12px;font-weight:600;color:var(--navy);}
 .rc-jur{font-size:10px;color:var(--gray);}
+
+/* FRAMEWORK ALIGNMENT (voluntary, separate from legal scope) */
+.fw-section{max-width:1200px;margin:0 auto;padding:28px 24px 40px;}
+.fw-hdr{margin-bottom:16px;}
+.fw-title{font-family:var(--font-h);font-size:18px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.fw-badge{font-family:var(--font-b);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--slatedark);color:#fff;padding:3px 9px;border-radius:10px;}
+.fw-note{font-size:12px;color:var(--gray);max-width:820px;margin-top:8px;line-height:1.5;}
+.fw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.fw-card{background:#fff;border-radius:7px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,38,.07);border-left:5px solid var(--slate70);}
+.fw-acr{font-family:var(--font-h);font-size:13px;font-weight:700;color:var(--purple70);letter-spacing:.3px;}
+.fw-name{font-size:12px;font-weight:700;color:var(--navy);margin:2px 0 8px;}
+.fw-desc{font-size:12px;color:var(--navy);line-height:1.5;margin-bottom:8px;}
+.fw-who{font-size:11px;color:var(--gray);font-style:italic;}
 .pill{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;}
 .p-in{background:var(--greenlight);color:var(--green);}
 .p-watch{background:#fef3c7;color:#78350f;}
@@ -122,7 +135,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 26 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 32 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -238,6 +251,39 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
       <div class="ico">⚖️</div>
       <p><strong>Enter a company name and click Auto-Lookup</strong><br>to pull revenue, industry &amp; geography automatically.</p>
       <p style="font-size:12px;color:var(--gray);max-width:320px;margin-top:6px">Then click Analyze to see which regulations apply and exactly which thresholds trigger them.</p>
+    </div>
+  </div>
+</div>
+
+<div class="fw-section">
+  <div class="fw-hdr">
+    <div class="fw-title">🧭 Framework Alignment <span class="fw-badge">Voluntary — Not a Legal Requirement</span></div>
+    <p class="fw-note">These are widely-adopted security frameworks and attestation standards, not government regulations. Unlike the sections above, nothing here is legally required based on your company profile — organizations adopt them voluntarily, or because a customer, partner, or contract asks for them. RiskQ does not evaluate whether these apply to you; this section is reference information only.</p>
+  </div>
+  <div class="fw-grid">
+    <div class="fw-card">
+      <div class="fw-acr">NIST CSF 2.0</div>
+      <div class="fw-name">NIST Cybersecurity Framework</div>
+      <p class="fw-desc">A voluntary risk-management framework published by NIST. Widely used as a common baseline across industries and often referenced by other laws (e.g., Ohio's data-breach safe harbor) as an accepted standard to point to.</p>
+      <div class="fw-who">Typically adopted by: organizations building a security program from scratch, or seeking Ohio-style safe-harbor protection.</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-acr">ISO/IEC 27001:2022</div>
+      <div class="fw-name">Information Security Management Systems</div>
+      <p class="fw-desc">An international standard for building and running an information security management system (ISMS). Can be independently certified by an accredited auditor.</p>
+      <div class="fw-who">Typically requested by: enterprise customers and partners during vendor security reviews, especially outside the US.</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-acr">SOC 2 (Type II)</div>
+      <div class="fw-name">AICPA Service Organization Control Report</div>
+      <p class="fw-desc">An attestation report — not a certification — covering security, availability, and confidentiality controls over an observation period, issued by a licensed CPA firm.</p>
+      <div class="fw-who">Typically requested by: B2B SaaS customers during procurement, particularly in the US market.</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-acr">NIST SP 800-171</div>
+      <div class="fw-name">Protecting CUI in Non-Federal Systems</div>
+      <p class="fw-desc">A NIST publication defining controls for protecting Controlled Unclassified Information. Becomes a contractual requirement (not a standalone law) for DoD suppliers via DFARS clauses and CMMC certification.</p>
+      <div class="fw-who">Typically required via contract for: defense contractors and subcontractors handling CUI — see the CMMC card above for the related legal/contractual trigger.</div>
     </div>
   </div>
 </div>
@@ -460,6 +506,10 @@ const REGS=[
    logic:'AND',tests:[
      {type:'state',label:'Licensed insurer in a NAIC model-law adopting state',req:'AL/CT/DE/IN/LA/ME/MI/MS/ND/NH/OH/SC',pass:c=>c.states.some(s=>['AL','CT','DE','IN','LA','ME','MI','MS','ND','NH','OH','SC','ALL'].includes(s))},
      {type:'industry',label:'Insurance licensee ("Licensee")',req:'insurance',pass:c=>c.industry==='insurance'}]},
+  {group:'US State',acronym:'Ohio Safe Harbor',name:'Ohio Data Protection Act (SB 220)',jur:'Ohio',
+   penalties:'N/A — affirmative legal defense, not a penalty-bearing mandate. Shown as IN SCOPE/OUT for consistency with other cards, but adoption is optional, not required.',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Adopt a recognized cybersecurity framework (NIST CSF, ISO 27001, HIPAA, PCI-DSS, FedRAMP, or similar)','Maintain reasonable conformance to the chosen framework','Update within 1 year of framework revisions'],
+   logic:'OR',tests:[{type:'state',label:'Operates in Ohio (eligible for the safe harbor if you choose to use it)',req:'OH or ALL',pass:c=>c.states.includes('OH')||c.states.includes('ALL')}]},
   {group:'International',acronym:'GDPR',name:'General Data Protection Regulation',jur:'EU / EEA',
    penalties:'Civil: Greater of 4% annual global revenue or €20M',notif:'72 hrs',resp:'30 days',cure:'N/A',
    obls:['Lawful basis','DPO (where required)','DPIAs','8 data subject rights','Int\'l transfer restrictions','Vendor DPAs'],
@@ -492,6 +542,26 @@ const REGS=[
    penalties:'Civil: up to S$1M or 10% of Singapore turnover (if turnover >S$10M), whichever is higher',notif:'ASAP, within 3 days of assessment',resp:'30 days',cure:'N/A',
    obls:['Consent for collection/use/disclosure','Data Protection Officer','Access & correction rights','Breach notification to PDPC'],
    logic:'OR',tests:[{type:'country',label:'Collects/uses/discloses personal data of Singapore residents',req:'Singapore',pass:c=>c.intl.includes('Singapore')}]},
+  {group:'International',acronym:'Privacy Act (AU)',name:'Australian Privacy Act 1988',jur:'Australia',
+   penalties:'Civil: up to greater of AUD $50M, 3x benefit obtained, or 30% of adjusted turnover',notif:'ASAP (eligible data breach)',resp:'30 days',cure:'N/A',
+   obls:['Australian Privacy Principles (APPs) compliance','Notifiable Data Breach scheme','Privacy policy','Cross-border transfer accountability','Note: AUD $3M turnover small-business exemption currently exists, under active repeal as of 2026'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of Australian residents',req:'Australia',pass:c=>c.intl.includes('Australia')}]},
+  {group:'International',acronym:'DPDPA (India)',name:'Digital Personal Data Protection Act 2023',jur:'India',
+   penalties:'Civil: up to ₹250 crore (~$30M) per instance',notif:'Without unreasonable delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent / legitimate use basis','Data Principal rights (access, correction, erasure)','DPO required if classified Significant Data Fiduciary','Breach notification to Data Protection Board'],
+   logic:'OR',tests:[{type:'country',label:'Processes digital personal data of, or offers goods/services to, people in India',req:'India',pass:c=>c.intl.includes('India')}]},
+  {group:'International',acronym:'PDPA (Thailand)',name:'Personal Data Protection Act B.E. 2562 (2019)',jur:'Thailand',
+   penalties:'Administrative: up to THB 5M; Criminal: up to 1 yr + THB 1M fine; punitive civil damages up to 2x actual damages',notif:'72 hrs',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for collection/use/disclosure','Data subject rights','DPO required if large-scale processing','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Offers goods/services to, or monitors behavior of, people in Thailand',req:'Thailand',pass:c=>c.intl.includes('Thailand')}]},
+  {group:'International',acronym:'Privacy Act (NZ)',name:'New Zealand Privacy Act 2020',jur:'New Zealand',
+   penalties:'Civil: compensation orders; up to NZD $10,000 for failure to notify a notifiable breach',notif:'As soon as practicable',resp:'20 working days',cure:'N/A',
+   obls:['13 Information Privacy Principles','Notifiable Privacy Breach reporting','Cross-border disclosure restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Carries on business in New Zealand, collecting/holding personal info',req:'New Zealand',pass:c=>c.intl.includes('NewZealand')}]},
+  {group:'International',acronym:'PPL (Israel)',name:'Privacy Protection Law & Data Security Regulations',jur:'Israel',
+   penalties:'Administrative fines under Amendment 13 (effective Aug 2025), scaled to violation severity, data volume, and database security tier',notif:'Reasonable time',resp:'N/A',cure:'N/A',
+   obls:['Database registration (where required)','Data security program by database tier (basic/medium/high)','Breach notification to Privacy Protection Authority','Data subject access rights'],
+   logic:'OR',tests:[{type:'country',label:'Owns/manages a database containing personal data of Israeli residents',req:'Israel',pass:c=>c.intl.includes('Israel')}]},
 ];
 
 // ── EVAL ─────────────────────────────────────────────────────────────────────
