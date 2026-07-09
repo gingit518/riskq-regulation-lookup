@@ -135,7 +135,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 <div class="hdr">
   <div>
     <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 32 global regulations</div>
+    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 49 global regulations</div>
   </div>
   <div class="hdr-right">Powered by Claude AI · RiskQ Regulatory Intelligence</div>
 </div>
@@ -224,6 +224,7 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
         <option value="Japan">Japan</option><option value="China">China</option>
         <option value="SouthKorea">South Korea</option><option value="Thailand">Thailand</option>
         <option value="NewZealand">New Zealand</option><option value="Israel">Israel</option><option value="Singapore">Singapore</option>
+        <option value="Bahrain">Bahrain</option><option value="Egypt">Egypt</option><option value="Lebanon">Lebanon</option><option value="Qatar">Qatar</option><option value="QatarQFC">Qatar (QFC)</option><option value="Turkey">Turkey</option><option value="UAE">United Arab Emirates</option><option value="DIFC">UAE (DIFC)</option><option value="Ukraine">Ukraine</option><option value="Argentina">Argentina</option><option value="Chile">Chile</option><option value="Colombia">Colombia</option><option value="Mexico">Mexico</option><option value="Uruguay">Uruguay</option><option value="Malaysia">Malaysia</option><option value="Nepal">Nepal</option><option value="Vietnam">Vietnam</option>
       </select>
     </div>
 
@@ -562,6 +563,74 @@ const REGS=[
    penalties:'Administrative fines under Amendment 13 (effective Aug 2025), scaled to violation severity, data volume, and database security tier',notif:'Reasonable time',resp:'N/A',cure:'N/A',
    obls:['Database registration (where required)','Data security program by database tier (basic/medium/high)','Breach notification to Privacy Protection Authority','Data subject access rights'],
    logic:'OR',tests:[{type:'country',label:'Owns/manages a database containing personal data of Israeli residents',req:'Israel',pass:c=>c.intl.includes('Israel')}]},
+  {group:'International',acronym:'PDPL (Bahrain)',name:'Personal Data Protection Law (Law No. 30 of 2018)',jur:'Bahrain',
+   penalties:'Criminal/administrative: BD 1,000\u201320,000 (individuals); doubled up to BD 40,000 for corporate offenders',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Data subject access/correction/deletion rights','Registration with PDPA where required','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data in or from Bahrain',req:'Bahrain',pass:c=>c.intl.includes('Bahrain')}]},
+  {group:'International',acronym:'PDPL (Egypt)',name:'Personal Data Protection Law (Law No. 151 of 2020)',jur:'Egypt',
+   penalties:'Criminal/civil: EGP 200,000\u20132,000,000 (up to EGP 5,000,000 for sensitive-data violations)',notif:'Immediately upon discovery',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for collection/processing','Data subject rights (access, correction, objection)','Data Protection Officer','Cross-border transfer license from Data Protection Center'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Egypt (extraterritorial scope)',req:'Egypt',pass:c=>c.intl.includes('Egypt')}]},
+  {group:'International',acronym:'Law 81 (Lebanon)',name:'Electronic Transactions and Personal Data Law (Law No. 81 of 2018)',jur:'Lebanon',
+   penalties:'Primarily criminal: imprisonment 3 months\u20132 years plus fines; enforced by Ministry of Economy and Trade \u2014 no independent data protection regulator',notif:'N/A \u2014 no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Consent for processing','Registration of certain databases','Purpose limitation'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Lebanon',req:'Lebanon',pass:c=>c.intl.includes('Lebanon')}]},
+  {group:'International',acronym:'Law 13/2016 (Qatar)',name:'Personal Data Privacy Protection Law (Law No. 13 of 2016)',jur:'Qatar (State Law \u2014 mainland)',
+   penalties:'Administrative: up to QR 1,000,000 (up to QR 5,000,000 for specified violations); no imprisonment',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Data subject access/correction rights','Cross-border transfer restrictions','Compliance officer for certain controllers'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of Qatar residents (mainland), incl. foreign-based controllers',req:'Qatar',pass:c=>c.intl.includes('Qatar')}]},
+  {group:'International',acronym:'QFC DPR (Qatar)',name:'QFC Data Protection Regulations 2021',jur:'Qatar Financial Centre (free zone \u2014 separate regime from Qatar state law)',
+   penalties:'Administrative: up to $1,500,000 (USD) per offense',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['GDPR-aligned lawful basis','Data Protection Officer','DPIAs','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Entity registered/licensed in the Qatar Financial Centre free zone',req:'QatarQFC',pass:c=>c.intl.includes('QatarQFC')}]},
+  {group:'International',acronym:'KVKK (Turkey)',name:'Law on the Protection of Personal Data No. 6698 (KVKK)',jur:'Turkey',
+   penalties:'Administrative: TRY 85,437\u201317,092,242 (2026 tier, varies by violation type)',notif:'72 hrs to Board, without delay to data subjects',resp:'30 days',cure:'N/A',
+   obls:['Consent / lawful basis','VERBIS registration','Data subject rights','Cross-border transfer approval'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Turkey, incl. foreign controllers targeting Turkey',req:'Turkey',pass:c=>c.intl.includes('Turkey')}]},
+  {group:'International',acronym:'PDPL (UAE Federal)',name:'Federal Decree-Law No. 45 of 2021 on Personal Data Protection',jur:'United Arab Emirates (federal \u2014 excludes DIFC/ADGM free zones)',
+   penalties:'Fines deferred to Executive Regulations; commonly cited range AED 50,000\u20135,000,000 pending formal schedule',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent / lawful basis','Data subject rights','Data Protection Officer (where required)','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of UAE-based individuals (mainland), UAE or foreign controller',req:'UAE',pass:c=>c.intl.includes('UAE')}]},
+  {group:'International',acronym:'DIFC DPL (UAE)',name:'DIFC Data Protection Law No. 5 of 2020',jur:'Dubai International Financial Centre (free zone \u2014 separate from UAE federal law)',
+   penalties:'Administrative: $25,000\u2013$100,000 (USD) per infringement, across 35 listed violations; private right of action added July 2025',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['GDPR-aligned lawful basis','Data Protection Officer','DPIAs','Cross-border transfer adequacy'],
+   logic:'OR',tests:[{type:'country',label:'Entity registered/licensed in the DIFC free zone, or "stable arrangement" processing tied to DIFC',req:'DIFC',pass:c=>c.intl.includes('DIFC')}]},
+  {group:'International',acronym:'Law 2297-VI (Ukraine)',name:'Law on Personal Data Protection (No. 2297-VI, 2010)',jur:'Ukraine',
+   penalties:'Administrative fines only, enforced by the Parliamentary Commissioner for Human Rights (Ombudsman); pre-GDPR framework \u2014 a pending reform bill (Draft Law 8153, not yet enacted) would introduce fines up to 8% of turnover',notif:'No statutory deadline under current law',resp:'Reasonable time',cure:'N/A',
+   obls:['Registration of certain databases','Consent for processing','Data subject access rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Ukraine',req:'Ukraine',pass:c=>c.intl.includes('Ukraine')}]},
+  {group:'International',acronym:'PDPA (Argentina)',name:'Personal Data Protection Law (Law No. 25,326)',jur:'Argentina',
+   penalties:'Administrative: ARS 1,000\u2013100,000 per incident (tiered by severity, caps up to ARS 50,000,000 aggregate); criminal penalties (1 month\u20133 yrs) for specified offenses',notif:'N/A \u2014 no general statutory breach notification duty',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Registration with AAIP','Data subject access/rectification rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data within Argentina',req:'Argentina',pass:c=>c.intl.includes('Argentina')}]},
+  {group:'International',acronym:'Law 21.719 (Chile)',name:'Personal Data Protection Law (Law No. 21,719)',jur:'Chile',
+   penalties:'Enacted Dec 2024; enforcement and fines (5,000\u201320,000 UTM, or 2\u20134% annual revenue, tripled on recidivism) begin Dec 1, 2026',notif:'Without undue delay (once enforceable)',resp:'Reasonable time',cure:'N/A',
+   obls:['Lawful basis','Data Protection Agency registration (where required)','Data subject rights','Cross-border transfer rules'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data in Chile, or targets/monitors Chilean residents (enforceable from Dec 1, 2026)',req:'Chile',pass:c=>c.intl.includes('Chile')}]},
+  {group:'International',acronym:'Law 1581 (Colombia)',name:'Statutory Law on Data Protection (Law No. 1581 of 2012)',jur:'Colombia',
+   penalties:'Administrative: up to 2,000x monthly minimum wage (~$500K); suspension up to 6 months; permanent closure for persistent breach',notif:'N/A \u2014 no fixed statutory deadline',resp:'15 business days',cure:'N/A',
+   obls:['Consent for processing','Registration in National Database Registry','Data subject rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data within Colombia',req:'Colombia',pass:c=>c.intl.includes('Colombia')}]},
+  {group:'International',acronym:'LFPDPPP (Mexico)',name:'Federal Law on Protection of Personal Data Held by Private Parties',jur:'Mexico',
+   penalties:'Administrative: 100\u2013320,000 UMA (~$565\u2013$1.81M), doubled for sensitive data; criminal penalties for severe/deceitful processing',notif:'Immediately',resp:'20 business days',cure:'N/A',
+   obls:['Privacy notice','Consent for processing','ARCO rights (access, rectify, cancel, object)'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Mexico',req:'Mexico',pass:c=>c.intl.includes('Mexico')}]},
+  {group:'International',acronym:'Law 18.331 (Uruguay)',name:'Personal Data Protection Law (Law No. 18,331)',jur:'Uruguay',
+   penalties:'Administrative: fines up to 500,000 UI (~$60K\u201365K); database suspension up to 5 business days; judicial closure',notif:'N/A \u2014 no fixed statutory deadline',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Registration with URCDP','Data subject rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data in Uruguay, or targets Uruguayan residents (EU-adequate jurisdiction)',req:'Uruguay',pass:c=>c.intl.includes('Uruguay')}]},
+  {group:'International',acronym:'PDPA (Malaysia)',name:'Personal Data Protection Act 2010 (as amended 2024\u20132025)',jur:'Malaysia',
+   penalties:'Criminal: up to MYR 1,000,000 and/or 3 years imprisonment; separate fine up to MYR 250,000 for breach-notification non-compliance',notif:'Mandatory since June 1, 2025 (timeline not yet fixed in statute)',resp:'21 days',cure:'N/A',
+   obls:['Consent for processing','Data Protection Officer (mandatory)','Data subject access/correction rights','Mandatory breach notification (from Jun 2025)'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Malaysia',req:'Malaysia',pass:c=>c.intl.includes('Malaysia')}]},
+  {group:'International',acronym:'Privacy Act (Nepal)',name:'Individual Privacy Act, 2018 (2075 B.S.)',jur:'Nepal',
+   penalties:'Criminal: up to 3 years imprisonment and/or fine up to NPR 30,000; no dedicated data protection regulator',notif:'N/A \u2014 no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Consent for processing','Restrictions on sensitive personal information'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals located in Nepal',req:'Nepal',pass:c=>c.intl.includes('Nepal')}]},
+  {group:'International',acronym:'PDPL (Vietnam)',name:'Personal Data Protection Law (Law No. 91/2025/QH15)',jur:'Vietnam',
+   penalties:'In force since Jan 1, 2026, replacing Decree 13/2023; for data-trading violations, up to 10x violation revenue or VND 3 billion (~$115K), whichever is higher',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Data Protection Impact Assessment','Cross-border transfer restrictions','Data subject rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Vietnam',req:'Vietnam',pass:c=>c.intl.includes('Vietnam')}]},
 ];
 
 // ── EVAL ─────────────────────────────────────────────────────────────────────
