@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RegQ — RiskQ Regulatory Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#022672;--navy70:#4e72be;--navy40:#9bbfff;--darknavy:#000026;
+  --slate:#8093BC;--slate70:#ccdfff;--slatedark:#344770;
+  --purple:#522F9E;--purple70:#9e7bea;--purplelight:#ebcbff;
+  --green:#465545;--greenlight:#dfeede;--gray:#858585;--graylt:#d1d1d1;
+  --font-h:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --font-b:'Barlow','Calibri',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13px;}
+
+/* HEADER */
+.hdr{background:var(--navy);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-logo{font-family:var(--font-h);font-size:22px;font-weight:700;letter-spacing:1px;}
+.hdr-logo em{color:var(--purple70);font-style:normal;}
+.hdr-sub{font-size:11px;color:var(--slate);margin-top:2px;}
+.hdr-right{font-size:11px;color:var(--slate);text-align:right;}
+
+/* KEY SETUP BANNER */
+.key-banner{background:#fef3c7;border-bottom:2px solid #f59e0b;padding:8px 24px;font-size:12px;color:#78350f;display:flex;align-items:center;gap:16px;}
+.key-banner input{border:1px solid #f59e0b;border-radius:4px;padding:4px 8px;font-size:12px;width:260px;font-family:var(--font-b);}
+.key-banner .kb-save{background:#f59e0b;color:#fff;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:var(--font-h);font-weight:700;}
+.key-banner.hidden{display:none;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - 80px);}
+
+/* FORM PANEL */
+.fp{background:#fff;border-right:1px solid var(--slate70);overflow-y:auto;padding:16px;}
+.fp-title{font-family:var(--font-h);font-size:15px;font-weight:700;border-bottom:3px solid var(--purple);padding-bottom:6px;margin-bottom:12px;}
+.name-row{display:flex;gap:6px;margin-bottom:10px;}
+.name-row input{flex:1;border:1px solid var(--graylt);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--navy);font-family:var(--font-b);}
+.name-row input:focus{outline:none;border-color:var(--navy70);}
+.btn-lookup{background:var(--purple);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-family:var(--font-h);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.btn-lookup:hover{background:var(--purple70);}
+.btn-lookup:disabled{background:var(--graylt);cursor:not-allowed;}
+.lookup-status{font-size:11px;padding:5px 8px;border-radius:5px;margin-bottom:10px;display:none;}
+.lookup-status.loading{background:#fef3c7;color:#78350f;display:block;}
+.lookup-status.done{background:var(--greenlight);color:var(--green);display:block;}
+.lookup-status.err{background:#fee2e2;color:#b91c1c;display:block;}
+.source-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px;font-weight:600;}
+.src-auto{background:var(--purplelight);color:var(--purple);}
+.src-manual{background:var(--slate70);color:var(--slatedark);}
+.sec-lbl{font-family:var(--font-h);font-size:11px;font-weight:700;color:var(--slatedark);text-transform:uppercase;letter-spacing:.5px;background:#f5f7ff;border-radius:4px;padding:4px 8px;margin:12px 0 8px;}
+.field{margin-bottom:10px;}
+.field label{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.field input,.field select{width:100%;border:1px solid var(--graylt);border-radius:5px;padding:7px 9px;font-size:12px;color:var(--navy);font-family:var(--font-b);background:#fff;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--navy70);}
+.field select[multiple]{height:80px;}
+.field.auto-filled input,.field.auto-filled select{border-color:var(--purple70);background:var(--purplelight);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.hint{font-size:10px;color:var(--gray);margin-top:2px;}
+.btn-run{width:100%;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:11px;font-family:var(--font-h);font-size:15px;font-weight:700;cursor:pointer;margin-top:10px;transition:background .15s;}
+.btn-run:hover{background:var(--navy70);}
+.btn-clear{width:100%;background:transparent;color:var(--gray);border:1px solid var(--graylt);border-radius:6px;padding:7px;font-size:12px;cursor:pointer;margin-top:4px;}
+.btn-clear:hover{border-color:var(--slate);color:var(--navy);}
+
+/* RESULTS */
+.rp{overflow-y:auto;padding:16px 20px;}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:80%;color:var(--gray);text-align:center;gap:10px;}
+.empty .ico{font-size:48px;opacity:.25;}
+.co-card{background:var(--navy);color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:14px;}
+.co-name{font-family:var(--font-h);font-size:22px;font-weight:700;border-bottom:1px solid var(--slatedark);padding-bottom:8px;margin-bottom:10px;}
+.co-stats{display:flex;flex-wrap:wrap;gap:14px;}
+.co-stat .v{font-family:var(--font-h);font-size:18px;font-weight:700;}
+.co-stat .l{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+.sum-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.pdf-btn{margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:0 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.pdf-btn:hover{opacity:.85;}
+.sum-box{border-radius:7px;padding:10px 14px;flex:1;min-width:80px;text-align:center;}
+.sum-box .n{font-family:var(--font-h);font-size:26px;font-weight:700;}
+.sum-box .l{font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+.s-total{background:var(--navy);color:#fff;}
+.s-in{background:var(--greenlight);color:var(--green);}
+.s-watch{background:#fef3c7;color:#78350f;}
+.s-out{background:#fee2e2;color:#b91c1c;}
+.grp-hdr{background:var(--slatedark);color:#fff;border-radius:6px;padding:7px 14px;margin:14px 0 8px;font-family:var(--font-h);font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.grp-counts{margin-left:auto;font-size:11px;font-weight:400;opacity:.75;}
+.rc{background:#fff;border-radius:7px;margin-bottom:7px;border-left:5px solid var(--graylt);box-shadow:0 1px 3px rgba(0,0,38,.07);overflow:hidden;}
+.rc.in{border-left-color:var(--green);}
+.rc.watch{border-left-color:#f59e0b;}
+.rc.out{border-left-color:var(--graylt);}
+.rc-head{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;}
+.rc-head:hover{background:#f9faff;}
+.rc-acr{font-family:var(--font-h);font-size:16px;font-weight:700;min-width:80px;color:var(--navy);}
+.rc-info{flex:1;}
+.rc-name{font-size:12px;font-weight:600;color:var(--navy);}
+.rc-jur{font-size:10px;color:var(--gray);}
+
+/* FRAMEWORK ALIGNMENT (voluntary, separate from legal scope) */
+.fw-section{max-width:1200px;margin:0 auto;padding:28px 24px 40px;}
+.fw-hdr{margin-bottom:16px;}
+.fw-title{font-family:var(--font-h);font-size:18px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.fw-badge{font-family:var(--font-b);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--slatedark);color:#fff;padding:3px 9px;border-radius:10px;}
+.fw-note{font-size:12px;color:var(--gray);max-width:820px;margin-top:8px;line-height:1.5;}
+.fw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.fw-card{background:#fff;border-radius:7px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,38,.07);border-left:5px solid var(--slate70);}
+.fw-acr{font-family:var(--font-h);font-size:13px;font-weight:700;color:var(--purple70);letter-spacing:.3px;}
+.fw-name{font-size:12px;font-weight:700;color:var(--navy);margin:2px 0 8px;}
+.fw-desc{font-size:12px;color:var(--navy);line-height:1.5;margin-bottom:8px;}
+.fw-who{font-size:11px;color:var(--gray);font-style:italic;}
+.ne-badge{font-family:var(--font-b);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--navy);color:#fff;padding:3px 9px;border-radius:10px;}
+.ne-card{border-left:5px solid var(--navy);}
+.pill{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;}
+.p-in{background:var(--greenlight);color:var(--green);}
+.p-watch{background:#fef3c7;color:#78350f;}
+.p-out{background:#f3f4f6;color:#6b7280;}
+.rc-toggle{font-size:11px;color:var(--gray);transition:transform .2s;}
+.rc.open .rc-toggle{transform:rotate(180deg);}
+.rc-body{display:none;border-top:1px solid #eef0f8;padding:12px 14px;}
+.rc.open .rc-body{display:block;}
+.tt{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px;}
+.tt th{background:var(--navy);color:#fff;padding:5px 8px;text-align:left;font-family:var(--font-h);font-size:11px;}
+.tt td{padding:6px 8px;border-bottom:1px solid #eef0f8;vertical-align:middle;}
+.tt tr:last-child td{border-bottom:none;}
+.tt tr:nth-child(even) td{background:#f9faff;}
+.t-pass{color:var(--green);font-weight:700;}
+.t-fail{color:#b91c1c;font-weight:700;}
+.sla-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.sla-item{background:#f5f7ff;border-radius:4px;padding:6px 8px;font-size:11px;}
+.sla-item .sl{font-weight:700;color:var(--navy);margin-bottom:1px;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.chip{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--slate70);color:var(--navy);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:5px;vertical-align:middle;}
+@media print{.fp,.hdr,.key-banner{display:none;}.layout{display:block;}.rp{padding:0;}.rc-body{display:block!important;}}
+</style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js"></script>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-logo">REG<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence by RiskQ</span></div>
+    <div class="hdr-sub">Fill in your company profile — RegQ checks it against 92 global regulations</div>
+  </div>
+  <div class="hdr-right">RegQ by RiskQ</div>
+</div>
+
+<!-- API KEY SETUP BANNER — hidden once key is saved -->
+<div class="key-banner" id="key-banner">
+  🔑 Have a RiskQ access key? Enter it to turn on Auto-Lookup — or fill in the profile manually below.
+  <input type="password" id="key-input" placeholder="Paste your LOOKUP_SECRET here"/>
+  <button class="kb-save" onclick="saveKey()">Save</button>
+  <span style="opacity:.7">Stored only in this browser tab. Want a guided demo? <a href="mailto:ariel@risk-q.com?subject=RegQ%20demo" style="color:inherit">ariel@risk-q.com</a></span>
+</div>
+
+<div class="layout">
+  <div class="fp">
+    <div class="fp-title">Company Profile</div>
+    <div class="field"><label>Company Name *</label></div>
+    <div class="name-row">
+      <input type="text" id="f-name" placeholder="e.g. Bank of New York, Aetna, Salesforce…" oninput="clearAutoFill()"/>
+      <button class="btn-lookup" id="btn-lookup" onclick="autoLookup()">🔍 Auto-Lookup</button>
+    </div>
+    <div class="lookup-status" id="lookup-status"></div>
+
+    <div class="sec-lbl">📊 Financial &amp; Scale</div>
+    <div class="field-row">
+      <div class="field" id="field-rev">
+        <label>Annual Revenue ($M) *<span class="source-badge src-manual" id="badge-rev">manual</span></label>
+        <input type="number" id="f-rev" placeholder="e.g. 50" min="0"/>
+        <div class="hint">Total annual gross revenue</div>
+      </div>
+      <div class="field" id="field-ds">
+        <label>% Revenue from Data Sales<span class="source-badge src-manual" id="badge-ds">manual</span></label>
+        <input type="number" id="f-datasale" placeholder="e.g. 0" min="0" max="100"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field" id="field-emp">
+        <label>Employees<span class="source-badge src-manual" id="badge-emp">manual</span></label>
+        <input type="number" id="f-employees" placeholder="e.g. 120" min="0"/>
+        <div class="hint">Total headcount — drives EU NIS2 / CIRCIA size thresholds</div>
+      </div>
+      <div class="field" id="field-cons">
+        <label>Consumers / Data Subjects<span class="source-badge src-manual" id="badge-cons">manual</span></label>
+        <input type="number" id="f-consumers" placeholder="e.g. 150000" min="0"/>
+        <div class="hint">Total individuals whose data you process</div>
+      </div>
+    </div>
+
+    <div class="sec-lbl">🏭 Industry</div>
+    <div class="field" id="field-ind">
+      <label>Primary Industry *<span class="source-badge src-manual" id="badge-ind">manual</span></label>
+      <select id="f-industry">
+        <option value="">Select industry…</option>
+        <option value="healthcare">Healthcare / Health Insurance</option>
+        <option value="financial">Financial Services / Banking</option>
+        <option value="insurance">Insurance</option>
+        <option value="education">Education</option>
+        <option value="defense">Defense / Government Contractor</option>
+        <option value="retail">Retail / E-commerce</option>
+        <option value="tech">Technology / SaaS</option>
+        <option value="telecom">Telecommunications</option>
+        <option value="media">Media / Advertising</option>
+        <option value="energy">Energy / Utilities</option>
+        <option value="water">Water / Wastewater</option>
+        <option value="transportation">Transportation</option>
+        <option value="chemical">Chemical</option>
+        <option value="manufacturing">Critical Manufacturing</option>
+        <option value="foodag">Food &amp; Agriculture</option>
+        <option value="commercial">Commercial Facilities</option>
+        <option value="emergency">Emergency Services</option>
+        <option value="dams">Dams</option>
+        <option value="nuclear">Nuclear</option>
+        <option value="government">Government Facilities</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="sec-lbl">🗺 US Jurisdiction</div>
+    <div class="field" id="field-states">
+      <label>Operating US States<span class="source-badge src-manual" id="badge-states">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi)</span></label>
+      <select id="f-states" multiple>
+        <option value="ALL">All States / National</option>
+        <option value="CA">California</option><option value="CO">Colorado</option>
+        <option value="VA">Virginia</option><option value="NY">New York</option>
+        <option value="CT">Connecticut</option><option value="DE">Delaware</option>
+        <option value="MA">Massachusetts</option><option value="OH">Ohio</option>
+        <option value="IN">Indiana</option><option value="AL">Alabama</option>
+        <option value="LA">Louisiana</option><option value="ME">Maine</option>
+        <option value="MI">Michigan</option><option value="MS">Mississippi</option>
+        <option value="ND">North Dakota</option><option value="NH">New Hampshire</option>
+        <option value="SC">South Carolina</option><option value="TX">Texas</option>
+        <option value="FL">Florida</option><option value="MT">Montana</option>
+        <option value="OR">Oregon</option><option value="TN">Tennessee</option>
+        <option value="UT">Utah</option><option value="IA">Iowa</option>
+        <option value="NJ">New Jersey</option><option value="NE">Nebraska</option>
+        <option value="MN">Minnesota</option><option value="MD">Maryland</option>
+        <option value="KY">Kentucky</option><option value="RI">Rhode Island</option>
+        <option value="IL">Illinois</option><option value="WA">Washington</option>
+      </select>
+    </div>
+
+    <div class="sec-lbl">🌍 International Markets</div>
+    <div class="field" id="field-intl">
+      <label>Countries / Regions<span class="source-badge src-manual" id="badge-intl">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi)</span></label>
+      <select id="f-intl" multiple>
+        <option value="EU">EU / EEA</option><option value="UK">United Kingdom</option>
+        <option value="Canada">Canada (federal / other provinces)</option><option value="CanadaQuebec">Canada — Quebec</option><option value="CanadaBC">Canada — British Columbia</option><option value="CanadaAlberta">Canada — Alberta</option><option value="Germany">Germany</option><option value="Australia">Australia</option>
+        <option value="Brazil">Brazil</option><option value="India">India</option>
+        <option value="Japan">Japan</option><option value="China">China</option>
+        <option value="SouthKorea">South Korea</option><option value="Thailand">Thailand</option>
+        <option value="NewZealand">New Zealand</option><option value="Israel">Israel</option><option value="Singapore">Singapore</option>
+        <option value="Bahrain">Bahrain</option><option value="Egypt">Egypt</option><option value="Lebanon">Lebanon</option><option value="Qatar">Qatar</option><option value="QatarQFC">Qatar (QFC)</option><option value="Turkey">Turkey</option><option value="UAE">United Arab Emirates</option><option value="DIFC">UAE (DIFC)</option><option value="Ukraine">Ukraine</option><option value="Argentina">Argentina</option><option value="Chile">Chile</option><option value="Colombia">Colombia</option><option value="Mexico">Mexico</option><option value="Uruguay">Uruguay</option><option value="Malaysia">Malaysia</option><option value="Nepal">Nepal</option><option value="Vietnam">Vietnam</option><option value="SouthAfrica">South Africa</option><option value="Nigeria">Nigeria</option><option value="Kenya">Kenya</option><option value="Switzerland">Switzerland</option><option value="SaudiArabia">Saudi Arabia</option>
+      </select>
+    </div>
+
+    <div class="sec-lbl">⚠️ Vendor / Investor / Employment Ties</div>
+    <div class="field" id="field-vendor">
+      <label>Countries of Concern<span class="source-badge src-manual" id="badge-vendor">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi — NOT customer markets, see hint)</span></label>
+      <select id="f-vendor" multiple>
+        <option value="China">China (incl. Hong Kong, Macau)</option>
+        <option value="Russia">Russia</option>
+        <option value="Iran">Iran</option>
+        <option value="NorthKorea">North Korea</option>
+        <option value="Cuba">Cuba</option>
+        <option value="Venezuela">Venezuela</option>
+      </select>
+      <div class="hint">Vendors, cloud/data processors, investors, or employers tied to these countries — NOT customer/market countries (use International Markets above for that). Drives the DOJ Bulk Sensitive Data Rule.</div>
+    </div>
+
+    <div class="sec-lbl">🗄 Data Types Processed</div>
+    <div class="field" id="field-data">
+      <label>Select all that apply<span class="source-badge src-manual" id="badge-data">manual</span></label>
+      <select id="f-data" multiple>
+        <option value="PII">PII (Personal Identifiable Info)</option>
+        <option value="PHI">PHI (Health Information)</option>
+        <option value="Financial">Financial / Account Data</option>
+        <option value="Student">Student Records</option>
+        <option value="CardData">Payment Card Data</option>
+        <option value="Employee">Employee Data</option>
+        <option value="Sensitive">Sensitive Personal Data</option>
+        <option value="Biometric">Biometric Identifiers</option>
+        <option value="ChildrenU13">Children's Data (under 13)</option>
+        <option value="Genetic">Genetic Information</option>
+        <option value="CUI">Controlled Unclassified Info</option>
+      </select>
+    </div>
+
+    <div class="sec-lbl">🤖 AI System Involvement</div>
+    <div class="field" id="field-airole">
+      <label>AI System Role<span class="source-badge src-manual" id="badge-airole">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi)</span></label>
+      <select id="f-airole" multiple>
+        <option value="AIProhibited">Prohibited practice (social scoring, manipulative/subliminal techniques, real-time public biometric ID for law enforcement, emotion inference in workplace/education)</option>
+        <option value="AIHighRisk">Provider/deployer of a high-risk AI system (Annex III: HR/recruitment, credit scoring, biometric categorization, critical infrastructure, law enforcement, migration, education)</option>
+        <option value="AIGPAI">Provider of a general-purpose AI model (foundation model) placed on the EU market</option>
+        <option value="AILimited">Provider of a limited-risk AI system (chatbots, deepfakes, emotion recognition outside prohibited contexts) — transparency obligations only</option>
+      </select>
+      <div class="hint">Drives EU AI Act scoping. Leave blank if the company does not build or deploy AI systems.</div>
+    </div>
+
+    <div class="sec-lbl">📞 Marketing Channels</div>
+    <div class="field" id="field-marketing">
+      <label>Outbound Consumer Marketing<span class="source-badge src-manual" id="badge-marketing">manual</span> <span style="font-weight:400;font-size:9px;text-transform:none">(Ctrl/Cmd = multi)</span></label>
+      <select id="f-marketing" multiple>
+        <option value="OutboundCalls">Autodialed / prerecorded / live outbound calls</option>
+        <option value="SMS">SMS / text message marketing</option>
+      </select>
+      <div class="hint">Drives TCPA scoping. Leave blank if the company does not call or text consumers for marketing purposes.</div>
+    </div>
+
+    <button class="btn-run" onclick="runAnalysis()">⚖️ Analyze Regulatory Scope</button>
+    <button class="btn-clear" onclick="clearAll()">Clear</button>
+  </div>
+
+  <div class="rp" id="results-panel">
+    <div class="empty">
+      <div class="ico">⚖️</div>
+      <p><strong>Fill in your company profile and click Analyze</strong><br>Have an access key? Auto-Lookup fills revenue, industry &amp; geography for you.</p>
+      <p style="font-size:12px;color:var(--gray);max-width:320px;margin-top:6px">RegQ identifies the regulations likely in scope and the thresholds that trigger them. Decision support, not legal advice.</p>
+    </div>
+  </div>
+</div>
+
+<div class="fw-section">
+  <div class="fw-hdr">
+    <div class="fw-title">🧭 Framework Alignment <span class="fw-badge">Voluntary — Not a Legal Requirement</span></div>
+    <p class="fw-note">These are widely-adopted security frameworks and attestation standards, not government regulations. Unlike the sections above, nothing here is legally required based on your company profile — organizations adopt them voluntarily, or because a customer, partner, or contract asks for them. RiskQ does not evaluate whether these apply to you; this section is reference information only.</p>
+  </div>
+  <div class="fw-grid">
+    <div class="fw-card">
+      <div class="fw-acr">NIST CSF 2.0</div>
+      <div class="fw-name">NIST Cybersecurity Framework</div>
+      <p class="fw-desc">A voluntary risk-management framework published by NIST. Widely used as a common baseline across industries and often referenced by other laws (e.g., Ohio's data-breach safe harbor) as an accepted standard to point to.</p>
+      <div class="fw-who">Typically adopted by: organizations building a security program from scratch, or seeking Ohio-style safe-harbor protection.</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-acr">ISO/IEC 27001:2022</div>
+      <div class="fw-name">Information Security Management Systems</div>
+      <p class="fw-desc">An international standard for building and running an information security management system (ISMS). Can be independently certified by an accredited auditor.</p>
+      <div class="fw-who">Typically requested by: enterprise customers and partners during vendor security reviews, especially outside the US.</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-acr">SOC 2 (Type II)</div>
+      <div class="fw-name">AICPA Service Organization Control Report</div>
+      <p class="fw-desc">An attestation report — not a certification — covering security, availability, and confidentiality controls over an observation period, issued by a licensed CPA firm.</p>
+      <div class="fw-who">Typically requested by: B2B SaaS customers during procurement, particularly in the US market.</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-acr">NIST SP 800-171</div>
+      <div class="fw-name">Protecting CUI in Non-Federal Systems</div>
+      <p class="fw-desc">A NIST publication defining controls for protecting Controlled Unclassified Information. Becomes a contractual requirement (not a standalone law) for DoD suppliers via DFARS clauses and CMMC certification.</p>
+      <div class="fw-who">Typically required via contract for: defense contractors and subcontractors handling CUI — see the CMMC card above for the related legal/contractual trigger.</div>
+    </div>
+  </div>
+</div>
+
+<div class="fw-section">
+  <div class="fw-hdr">
+    <div class="fw-title">🎯 Named-Entity Regulations <span class="ne-badge">Binding — Applies Only to Designated Companies</span></div>
+    <p class="fw-note">These are real, legally binding regulations — not voluntary like the Framework Alignment section above — but they apply to a specific, named, small list of companies designated by a regulator, not to companies generally based on revenue, industry, or data volume. RiskQ does not score these against your company profile; check the named list directly.</p>
+  </div>
+  <div class="fw-grid">
+    <div class="fw-card ne-card">
+      <div class="fw-acr">EU DMA</div>
+      <div class="fw-name">Digital Markets Act (Regulation (EU) 2022/1925)</div>
+      <p class="fw-desc">Applies only to companies the European Commission has formally designated as “gatekeepers” for specific “core platform services.” As of 2026 the designated gatekeepers are Alphabet (Google), Amazon, Apple, ByteDance (TikTok), Meta, Microsoft, and Booking.com. Penalties reach up to 10% of global annual turnover (20% for repeat non-compliance), with daily fines up to 5% of average daily worldwide turnover for ongoing non-compliance. The Commission is escalating DMA/DSA enforcement in 2026, with potential fines against the named gatekeepers estimated to exceed €100 billion collectively.</p>
+      <div class="fw-who">Applies to: only the Commission-designated gatekeepers named above. If your company is not on that list, the DMA does not apply to you — no revenue or user-count threshold puts a company in scope on its own.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── URL ACCESS PARAM — reads ?access=TOKEN and stores in session ─────────────
+(function readAccessParam(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const access = params.get('access');
+    if(access && access.trim()){
+      sessionStorage.setItem('rq_lookup_secret', access.trim());
+      // Strip param from URL bar without reload (keeps it clean)
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete('access');
+      window.history.replaceState({}, '', clean.toString());
+    }
+  } catch(e){}
+})();
+
+// ── API KEY MANAGEMENT ───────────────────────────────────────────────────────
+let LOOKUP_SECRET = sessionStorage.getItem('rq_lookup_secret') || '';
+
+(function initKey(){
+  if(LOOKUP_SECRET) document.getElementById('key-banner').classList.add('hidden');
+})();
+
+function saveKey(){
+  const k = document.getElementById('key-input').value.trim();
+  if(!k){ alert('Enter a key first.'); return; }
+  LOOKUP_SECRET = k;
+  sessionStorage.setItem('rq_lookup_secret', k);
+  document.getElementById('key-banner').classList.add('hidden');
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function sel(id){return[...document.getElementById(id).options].filter(o=>o.selected).map(o=>o.value);}
+function fmtN(n){return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(0)+'K':String(n);}
+function setStatus(msg,cls){const el=document.getElementById('lookup-status');el.textContent=msg;el.className='lookup-status '+cls;}
+function markAuto(fId,bId){
+  document.getElementById(fId).classList.add('auto-filled');
+  const b=document.getElementById(bId);b.textContent='auto';b.className='source-badge src-auto';
+}
+function clearAutoFill(){
+  ['field-rev','field-ds','field-cons','field-ind','field-states','field-intl','field-data']
+    .forEach(id=>document.getElementById(id)?.classList.remove('auto-filled'));
+  ['badge-rev','badge-ds','badge-cons','badge-ind','badge-states','badge-intl','badge-data']
+    .forEach(id=>{const b=document.getElementById(id);if(b){b.textContent='manual';b.className='source-badge src-manual';}});
+  document.getElementById('lookup-status').className='lookup-status';
+}
+
+// ── AUTO-LOOKUP via /api/lookup ──────────────────────────────────────────────
+async function autoLookup(){
+  const name = document.getElementById('f-name').value.trim();
+  if(!name){ alert('Enter a company name first.'); return; }
+  if(!LOOKUP_SECRET){
+    setStatus('Auto-Lookup needs a RiskQ access key — enter it in the banner above, or fill in the profile manually.','err');
+    return;
+  }
+  const btn = document.getElementById('btn-lookup');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Looking up…';
+  setStatus('Searching for ' + name + '…', 'loading');
+
+  try {
+    const resp = await fetch('/api/lookup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': LOOKUP_SECRET
+      },
+      body: JSON.stringify({ company_name: name })
+    });
+
+    if(resp.status === 401){
+      // Stored key is wrong or stale: clear it and re-show the banner so a new one can be entered
+      LOOKUP_SECRET = '';
+      try{ sessionStorage.removeItem('rq_lookup_secret'); }catch(e){}
+      document.getElementById('key-banner').classList.remove('hidden');
+      document.getElementById('key-input').value = '';
+      throw new Error('Access key not accepted — re-enter it in the banner above, or fill in the profile manually.');
+    }
+    if(!resp.ok){
+      const err = await resp.json().catch(()=>({error: resp.statusText}));
+      throw new Error(err.error || resp.statusText);
+    }
+
+    const data = await resp.json();
+
+    // Populate form fields
+    if(data.revenue_millions != null){ document.getElementById('f-rev').value = Math.round(data.revenue_millions); markAuto('field-rev','badge-rev'); }
+    if(data.data_sale_pct != null){ document.getElementById('f-datasale').value = data.data_sale_pct; markAuto('field-ds','badge-ds'); }
+    if(data.consumers_estimate != null){ document.getElementById('f-consumers').value = Math.round(data.consumers_estimate); markAuto('field-cons','badge-cons'); }
+    if(data.employees != null){ document.getElementById('f-employees').value = Math.round(data.employees); markAuto('field-emp','badge-emp'); }
+    if(data.industry){ document.getElementById('f-industry').value = data.industry; markAuto('field-ind','badge-ind'); }
+    if(data.us_states?.length){
+      const s = document.getElementById('f-states');
+      [...s.options].forEach(o=>o.selected=data.us_states.includes(o.value));
+      markAuto('field-states','badge-states');
+    }
+    if(data.international?.length){
+      const s = document.getElementById('f-intl');
+      [...s.options].forEach(o=>o.selected=data.international.includes(o.value));
+      markAuto('field-intl','badge-intl');
+    }
+    if(data.data_types?.length){
+      const s = document.getElementById('f-data');
+      [...s.options].forEach(o=>o.selected=data.data_types.includes(o.value));
+      markAuto('field-data','badge-data');
+    }
+
+    const rev = data.revenue_millions ? '$' + Math.round(data.revenue_millions) + 'M · ' : '';
+    const note = data.notes ? ' · ' + data.notes : '';
+    setStatus('✓ Found: ' + rev + (data.industry_notes || data.industry || '') + note, 'done');
+    btn.disabled = false; btn.innerHTML = '🔍 Auto-Lookup';
+    runAnalysis();
+
+  } catch(e) {
+    setStatus('Error: ' + e.message, 'err');
+    btn.disabled = false; btn.innerHTML = '🔍 Auto-Lookup';
+  }
+}
+
+// ── REGULATION DATA ──────────────────────────────────────────────────────────
+let lastAnalysis=null;
+const REGS=[
+  {group:'US Federal',acronym:'FTC Act',name:'Federal Trade Commission Act',jur:'Federal (USA)',
+   penalties:'Civil: up to $53,088 per violation of an FTC order or trade-regulation rule (2025 inflation adjustment); Section 5 itself carries no fine for a first offense — FTC typically imposes 20-year consent orders',notif:'N/A — no breach-notification deadline in the FTC Act (see FTC Safeguards Rule / HBNR)',resp:'N/A',cure:'N/A',
+   obls:['Data breach notification','Data security requirements','Privacy notice','Avoid secondary use','Vendor program'],
+   logic:'always',tests:[{type:'always',label:'Applies to all US companies conducting commercial activity',req:'Universal',pass:()=>true}]},
+  {group:'US Federal',acronym:'HIPAA',name:'Health Insurance Portability and Accountability Act',jur:'Federal (USA)',
+   penalties:'Civil: $145–$73,011 per violation, calendar-year cap $2,190,294 per identical provision (HHS 2026 inflation adjustment); Criminal: up to 10 yrs',notif:'60 days',resp:'30 days',cure:'N/A',
+   obls:['PHI safeguards','Business Associate Agreements','Breach notification','Access controls','Privacy notice'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Healthcare / health insurance entity',req:'healthcare',pass:c=>c.industry==='healthcare'},
+     {type:'datatype',label:'Processes PHI (Protected Health Information)',req:'PHI data type',pass:c=>c.dataTypes.includes('PHI')||c.industry==='healthcare'}]},
+  {group:'US Federal',acronym:'GLBA',name:'Gramm-Leach-Bliley Act',jur:'Federal (USA)',
+   penalties:'Civil: enforced by FTC and banking regulators; up to $53,088 per violation of the FTC Safeguards Rule or an FTC order (2025 adjustment)',notif:'30 days to FTC after discovery if 500+ consumers affected (FTC Safeguards Rule, non-bank financial institutions, since May 2024); banks follow the 36-hr federal banking-agency incident rule',resp:'N/A',cure:'N/A',
+   obls:['Safeguard customer NPI','Privacy notice','Opt-out of data sharing','Vendor program'],
+   logic:'OR',tests:[{type:'industry',label:'Financial institution (banking, lending, investment)',req:'financial / insurance',pass:c=>['financial','insurance'].includes(c.industry)}]},
+  {group:'US Federal',acronym:'FERPA',name:'Family Educational Rights and Privacy Act',jur:'Federal (USA)',
+   penalties:'Loss of federal funding',notif:'N/A',resp:'45 days (parent/student record access)',cure:'N/A',
+   obls:['Student record protections','Parental access rights','Limits on disclosure'],
+   logic:'OR',tests:[
+     {type:'industry',label:'Educational institution',req:'education',pass:c=>c.industry==='education'},
+     {type:'datatype',label:'Processes student records',req:'Student',pass:c=>c.dataTypes.includes('Student')}]},
+  {group:'US Federal',acronym:'CMMC',name:'Cybersecurity Maturity Model Certification',jur:'Federal (USA)',
+   penalties:'Civil: Revocation of DoD contracts',notif:'72 hrs',resp:'N/A',cure:'N/A',
+   obls:['CUI protection','Risk assessment','Incident response','Pen test'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Defense contractor / DoD supplier',req:'defense',pass:c=>c.industry==='defense'},
+     {type:'datatype',label:'Handles Controlled Unclassified Info (CUI)',req:'CUI',pass:c=>c.dataTypes.includes('CUI')||c.industry==='defense'}]},
+  {group:'US Federal',acronym:'PCI-DSS',name:'Payment Card Industry Data Security Standard',jur:'Global (card brands)',
+   penalties:'Contractual (card brands, not statute): $5,000–$100,000 per month of non-compliance, plus per-card assessments for compromised cards',notif:'Immediate',resp:'N/A',cure:'N/A',
+   obls:['Cardholder data protection','Encryption','Pen test','Vulnerability scans'],
+   logic:'OR',tests:[{type:'datatype',label:'Processes / stores / transmits payment card data',req:'CardData',pass:c=>c.dataTypes.includes('CardData')}]},
+  {group:'US Federal',acronym:'SEC Cyber',name:'SEC Cybersecurity Disclosure Rules',jur:'Federal (USA)',
+   penalties:'Civil penalties + enforcement actions',notif:'4 business days after determining an incident is material (Form 8-K Item 1.05)',resp:'N/A (annual cyber risk disclosure in Form 10-K Item 1C)',cure:'N/A',
+   obls:['Material incident disclosure (4 days)','Annual cyber risk report','Board oversight disclosure'],
+   logic:'OR',tests:[{type:'industry',label:'SEC-registered / publicly traded financial services',req:'financial',pass:c=>c.industry==='financial'}]},
+  {group:'US Federal',acronym:'FCC',name:'FCC Cybersecurity & CPNI Rules',jur:'Federal (USA)',
+   penalties:'Civil: forfeitures per violation, case-by-case',notif:'7 business days to FCC/FBI/USSS after reasonable determination of breach; customers within 30 days',resp:'N/A',cure:'N/A',
+   obls:['CPNI safeguards','Breach notification to law enforcement + customers','Annual compliance certification'],
+   logic:'OR',tests:[{type:'industry',label:'Telecommunications carrier / VoIP provider',req:'telecom',pass:c=>c.industry==='telecom'}]},
+  {group:'US Federal',acronym:'FISMA',name:'Federal Information Security Modernization Act',jur:'Federal (USA)',
+   penalties:'Loss of contract / Authorization to Operate',notif:'Per agency incident-reporting rules',resp:'N/A',cure:'N/A',
+   obls:['System Security Plan (SSP)','NIST 800-53 controls','Continuous monitoring','Authorization to Operate'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Federal agency or contractor operating a federal information system',req:'defense',pass:c=>c.industry==='defense'},
+     {type:'datatype',label:'Handles federal / Controlled Unclassified Info',req:'CUI',pass:c=>c.dataTypes.includes('CUI')||c.industry==='defense'}]},
+  {group:'US Federal',acronym:'CIRCIA',name:'Cyber Incident Reporting for Critical Infrastructure Act',jur:'Federal (USA)',
+   penalties:'No direct statutory monetary fine; non-compliance risk includes CISA subpoena power, DOJ referral for false statements, and contractual/reputational exposure',notif:'72 hrs (covered cyber incident); 24 hrs (ransomware payment) — NOT yet in effect: final rule expected Sept 2026',resp:'N/A',cure:'N/A',
+   obls:['72-hr reporting of covered cyber incidents to CISA','24-hr reporting of ransomware payments','Data preservation obligations','Final rule not yet published — CISA missed its May 2026 target; the 2026 Unified Agenda now projects September 2026 — obligations here reflect the April 2024 NPRM structure and may change','Size test is an approximation: SBA small-business size standards vary 100–1,500 employees (or $2.25M–$47M revenue) by sector — verify against your specific NAICS code/SBA threshold','Some CIRCIA-covered entity types are in-scope regardless of size; this model does not capture those exceptions'],
+   logic:'AND',tests:[
+     {type:'industry',label:'Operates in a CIRCIA-covered critical infrastructure sector (chemical, commercial facilities, communications, critical manufacturing, dams, defense industrial base, emergency services, energy, financial services, food & agriculture, government facilities, healthcare, IT, nuclear, transportation, water/wastewater)',req:'critical infrastructure sector',pass:c=>['chemical','commercial','telecom','manufacturing','dams','defense','emergency','energy','financial','insurance','foodag','government','healthcare','tech','nuclear','transportation','water'].includes(c.industry)},
+     {type:'employees',label:'Exceeds SBA small-business size standard (approximated as ≥100 employees — actual threshold varies by sector)',reqNum:100,req:'~100+ employees (sector-dependent)',pass:c=>c.employees>=100}]},
+  {group:'US Federal',acronym:'NERC CIP',name:'NERC Critical Infrastructure Protection Standards',jur:'Federal (USA) + Canada — Bulk Electric System',
+   penalties:'Civil: FERC-authorized penalties up to $1,584,648 per violation per day (2025 inflation adjustment), scaled to severity, grid-reliability risk, and compliance history',notif:'Per CIP-008 Incident Reporting requirements',resp:'N/A',cure:'N/A',
+   obls:['13 active CIP standards (CIP-002 through CIP-015): BES Cyber System categorization, security management controls, personnel/training, electronic security perimeters, physical security, system security management, incident reporting, recovery plans, configuration change management, information protection, inter-control-center communications, supply chain risk management, internal network security monitoring','CIP-003-9 (low-impact BES Cyber Systems, vendor remote access/supply chain) enforcement began Apr 1, 2026','CIP-012-2 (real-time operational data between control centers) effective Jul 1, 2026','CIP-015-1 effective Sep 2, 2025, phased compliance through Sep 2030'],
+   logic:'OR',tests:[{type:'industry',label:'Owns/operates assets connected to the Bulk Electric System (utilities, transmission operators, distribution providers, generation owners)',req:'energy',pass:c=>c.industry==='energy'}]},
+  {group:'US Federal',acronym:'FTC HBNR',name:'FTC Health Breach Notification Rule',jur:'Federal (USA)',
+   penalties:'Civil: up to $53,088 per violation (FTC 2025 inflation adjustment, continued for 2026; via FTC Act Section 18 unfair/deceptive practices)',notif:'Without unreasonable delay, max 60 calendar days after discovery, to consumers; 500+ affected: FTC notified at the same time (max 60 days); under 500: annual log to FTC within 60 days of year-end',resp:'N/A',cure:'N/A',
+   obls:['Applies to health apps/connected devices NOT covered by HIPAA — fitness trackers, period trackers, mental wellness tools, direct-to-consumer telehealth not tied to a covered healthcare provider','Breach notification to consumers + FTC + (500+ affected) media','Complements HIPAA rather than overlapping it — excluded here if the company is already HIPAA-covered'],
+   logic:'AND',tests:[
+     {type:'datatype',label:'Processes personal health records / consumer health data',req:'PHI',pass:c=>c.dataTypes.includes('PHI')},
+     {type:'industry',label:'Not already a HIPAA-covered entity (healthcare/health-insurance industry is covered by HIPAA instead)',req:'non-healthcare industry',pass:c=>c.industry!=='healthcare'}]},
+  {group:'US Federal',acronym:'ADA Title III',name:'Americans with Disabilities Act, Title III (website/app accessibility, WCAG 2.1 AA)',jur:'Federal (USA)',
+   penalties:'Civil: up to $118,225 first violation, $236,451 for subsequent violations (DOJ, 2025 inflation adjustment); typical plaintiff-attorney settlement demands of $10,000–$25,000 before litigation; attorney’s fees and injunctive relief in private suits',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['WCAG 2.1 Level AA is the de facto court-recognized technical standard, though the ADA itself names no specific standard','Applies to websites/apps of businesses considered “places of public accommodation” — DOJ and most courts read this to cover essentially all commercial websites, not just brick-and-mortar-adjacent ones','3,117 federal website-accessibility lawsuits filed in 2025 alone (+27% YoY), ~70% targeting online retail','Assumes the company has a public-facing website or app — if not, this does not apply'],
+   logic:'always',tests:[{type:'always',label:'Applies to any company with a public-facing commercial website or app',req:'Universal (assumes public-facing digital presence)',pass:()=>true}]},
+  {group:'US Federal',acronym:'TCPA',name:'Telephone Consumer Protection Act',jur:'Federal (USA)',
+   penalties:'Private civil: $500 per violation ($1,500 if willful/knowing) — no proof of actual harm required, each call/text is a separate violation; FCC: up to $10,000 per call for intentional violations (TRACED Act)',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Prior express written consent required for autodialed/prerecorded calls and texts to cell phones','AI-generated/cloned voices in robocalls are covered (FCC ruling, Feb 2024)','Do-not-call registry compliance','Class-action-heavy area — statutory damages make even modest campaigns high-exposure'],
+   logic:'OR',tests:[{type:'marketing_channel',label:'Makes autodialed/prerecorded/live outbound calls or sends SMS marketing to consumers',req:'OutboundCalls or SMS',pass:c=>(c.marketingChannels||[]).includes('OutboundCalls')||(c.marketingChannels||[]).includes('SMS')}]},
+  {group:'US Federal',acronym:'FedRAMP',name:'Federal Risk and Authorization Management Program',jur:'Federal (USA)',
+   penalties:'No direct fine — non-compliance results in loss of FedRAMP Certification/Marketplace listing, which typically means loss of the federal contract or ability to sell to federal agencies',notif:'Per agency incident-reporting requirements',resp:'N/A',cure:'N/A',
+   obls:['Security authorization (assessment + ongoing monitoring) for cloud services used government-wide by federal agencies','Consolidated Rules for 2026 take effect Jul 4, 2026; enforcement of the new rules begins Jan 1, 2027','Distinct program from FISMA/CMMC, though related — modeled here on the same industry proxy as FISMA (defense/government-contractor), which may under-include civilian-agency cloud vendors outside that industry label — a known simplification worth revisiting'],
+   logic:'OR',tests:[{type:'industry',label:'Cloud service provider selling to federal agencies (government contractor)',req:'defense',pass:c=>c.industry==='defense'}]},
+  {group:'US State',acronym:'UCPA',name:'Utah Consumer Privacy Act',jur:'Utah',
+   penalties:'Civil: up to $7,500 per violation',notif:'As soon as possible',resp:'45 days',cure:'30 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale & targeted ads)','Privacy notice','Sensitive data processing consent','Right to correct inaccurate data effective July 1, 2026'],
+   logic:'state_AND_revenue_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Utah residents',req:'UT or ALL',pass:c=>c.states.includes('UT')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue ≥ $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Controls data of ≥ 100,000 UT consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥50% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'ICDPA',name:'Iowa Consumer Data Protection Act',jur:'Iowa',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A — no fixed statutory deadline',resp:'90 days',cure:'90 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','No revenue threshold — volume-of-data-driven law'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Iowa residents',req:'IA or ALL',pass:c=>c.states.includes('IA')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 IA consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥50% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'MCDPA',name:'Montana Consumer Data Privacy Act',jur:'Montana',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'Cure right expired Apr 1, 2026 — AG may proceed directly to enforcement',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','2025 amendment lowered thresholds and expanded minor protections'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Montana residents',req:'MT or ALL',pass:c=>c.states.includes('MT')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 25,000 MT consumers',req:'25,000',reqNum:25000,pass:c=>c.consumers>=25000},
+     {type:'consumers_ds',label:'≥ 15,000 consumers AND ≥25% revenue from data sales',req:'15,000 + 25% data rev',pass:c=>c.consumers>=15000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'OCPA',name:'Oregon Consumer Privacy Act',jur:'Oregon',
+   penalties:'Civil: up to $7,500 per violation (each affected consumer may count separately)',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'Cure right expired Jan 1, 2026 — AG may proceed directly to enforcement',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Applies to for-profit AND non-profit entities','Auto manufacturers in scope regardless of thresholds','Universal opt-out signal recognition + geolocation data-sale ban, both effective Jan 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Oregon residents',req:'OR or ALL',pass:c=>c.states.includes('OR')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 OR consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥25% revenue from data sales',req:'25,000 + 25% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'TDPSA',name:'Texas Data Privacy and Security Act',jur:'Texas',
+   penalties:'Civil: up to $7,500 per violation, no aggregate cap',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'30 days (permanent, does not sunset)',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale & targeted ads/profiling)','Privacy notice','No consumer-count or revenue threshold — applies to all but SBA-defined small businesses','Sensitive-data sellers are in scope regardless of size','Also intersects with Chapter 510 data broker registration and TRAIGA AI-system obligations (both effective Jan 1, 2026) — not modeled separately here'],
+   logic:'AND',tests:[
+     {type:'state',label:'Operates in / targets Texas residents',req:'TX or ALL',pass:c=>c.states.includes('TX')||c.states.includes('ALL')},
+     {type:'employees',label:'Not exempt as SBA small business (<500 employees), unless selling sensitive personal data (in scope regardless of size)',reqNum:500,req:'≥500 employees, or any size if selling sensitive data',pass:c=>c.employees>=500||(c.dataSale>0&&c.dataTypes.includes('Sensitive'))}]},
+  {group:'US State',acronym:'NJDPA',name:'New Jersey Data Privacy Act',jur:'New Jersey',
+   penalties:'Civil: up to $10,000 first violation, up to $20,000 for subsequent violations',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'18-month cure window ends July 15, 2026 — discretionary thereafter',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Sensitive data processing consent'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets New Jersey residents',req:'NJ or ALL',pass:c=>c.states.includes('NJ')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 NJ consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND derives revenue/discount from data sales',req:'25,000 + data rev',pass:c=>c.consumers>=25000&&c.dataSale>0}]},
+  {group:'US State',acronym:'NHPA',name:'New Hampshire Data Privacy Act (SB 255)',jur:'New Hampshire',
+   penalties:'Civil: up to $10,000 per violation (unfair/deceptive trade practice)',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'60 days, discretionary post-Jan 1, 2026',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets New Hampshire residents',req:'NH or ALL',pass:c=>c.states.includes('NH')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 35,000 NH consumers',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'≥ 10,000 consumers AND ≥25% revenue from data sales',req:'10,000 + 25% data rev',pass:c=>c.consumers>=10000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'NDPA',name:'Nebraska Data Privacy Act',jur:'Nebraska',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'30 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','No consumer-count or revenue threshold — applies to all but SBA-defined small businesses','Sensitive-data-sale consent required of ALL businesses, including exempt small businesses','Size test approximates the generic 500-employee SBA standard — actual SBA thresholds vary by NAICS code'],
+   logic:'AND',tests:[
+     {type:'state',label:'Operates in / targets Nebraska residents',req:'NE or ALL',pass:c=>c.states.includes('NE')||c.states.includes('ALL')},
+     {type:'employees',label:'Not exempt as SBA small business (approximated as ≥500 employees)',reqNum:500,req:'≥500 employees (approx.)',pass:c=>c.employees>=500}]},
+  {group:'US State',acronym:'MNCDPA',name:'Minnesota Consumer Data Privacy Act',jur:'Minnesota',
+   penalties:'Civil: up to $7,500 per violation plus attorney’s fees',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'30 days, expires Jan 31, 2026',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Small-business (SBA) exemption applies'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Minnesota residents',req:'MN or ALL',pass:c=>c.states.includes('MN')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 MN consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥25% revenue from data sales',req:'25,000 + 25% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'MODPA',name:'Maryland Online Data Privacy Act',jur:'Maryland',
+   penalties:'Civil: up to $10,000 first violation, up to $25,000 for subsequent violations',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'60 days until Apr 1, 2027, then none',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Notably tighter sensitive-data restrictions than most state laws (near-ban on sale of sensitive data) and heightened minor protections','Lowest consumer-count thresholds of any modeled state law','Applicable from Apr 1, 2026 (law took effect Oct 1, 2025)'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Maryland residents',req:'MD or ALL',pass:c=>c.states.includes('MD')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 35,000 MD consumers',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'≥ 10,000 consumers AND ≥20% revenue from data sales',req:'10,000 + 20% data rev',pass:c=>c.consumers>=10000&&c.dataSale>=20}]},
+  {group:'US State',acronym:'TIPA',name:'Tennessee Information Protection Act',jur:'Tennessee',
+   penalties:'Civil: up to $7,500 per violation (treble damages if willful/knowing)',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'60 days',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Highest state consumer-count threshold (175,000) of any enacted state privacy law','Affirmative defense if a written privacy program reasonably conforms to the NIST Privacy Framework'],
+   logic:'state_AND_revenue_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Tennessee residents',req:'TN or ALL',pass:c=>c.states.includes('TN')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue ≥ $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Controls data of ≥ 175,000 TN consumers',req:'175,000',reqNum:175000,pass:c=>c.consumers>=175000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥50% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'INCDPA',name:'Indiana Consumer Data Protection Act',jur:'Indiana',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'30 days (permanent, does not sunset)',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Effective Jan 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Indiana residents',req:'IN or ALL',pass:c=>c.states.includes('IN')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 IN consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥50% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'KCDPA',name:'Kentucky Consumer Data Protection Act',jur:'Kentucky',
+   penalties:'Civil: up to $7,500 per violation',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'30 days (permanent, does not sunset)',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Effective Jan 1, 2026','Data Protection Assessments required for processing activities created on/after Jun 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Kentucky residents',req:'KY or ALL',pass:c=>c.states.includes('KY')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 KY consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥50% revenue from data sales',req:'25,000 + 50% data rev',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'RIDTPPA',name:'Rhode Island Data Transparency and Privacy Protection Act',jur:'Rhode Island',
+   penalties:'Civil: up to $10,000 per violation; $100–$500 per violation for intentional disclosures',notif:'N/A — no fixed statutory deadline',resp:'45 days',cure:'None — no statutory cure right',
+   obls:['Consumer rights (access/delete/portability/opt-out of sale)','Privacy notice','Also applies to commercial websites/ISPs with RI customers regardless of numerical thresholds','Effective Jan 1, 2026'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Rhode Island residents',req:'RI or ALL',pass:c=>c.states.includes('RI')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 35,000 RI consumers',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'≥ 10,000 consumers AND ≥20% revenue from data sales',req:'10,000 + 20% data rev',pass:c=>c.consumers>=10000&&c.dataSale>=20}]},
+  {group:'US State',acronym:'BIPA',name:'Illinois Biometric Information Privacy Act',jur:'Illinois',
+   penalties:'Civil: $1,000–$5,000 per violation (per person, per method of collection, since the 2024 amendment — not per-scan); private right of action',notif:'N/A — no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Written policy for retention/destruction of biometric data','Informed written consent before collection','No profiting from biometric data','No consumer-count or revenue threshold — applies to any private entity','Only US state biometric law with a private right of action'],
+   logic:'AND',tests:[
+     {type:'state',label:'Operates in / collects biometric data of Illinois residents',req:'IL or ALL',pass:c=>c.states.includes('IL')||c.states.includes('ALL')},
+     {type:'datatype',label:'Collects biometric identifiers/information (fingerprints, face/voice/retina scans, etc.)',req:'Biometric',pass:c=>c.dataTypes.includes('Biometric')}]},
+  {group:'US State',acronym:'MHMDA',name:'Washington My Health My Data Act',jur:'Washington',
+   penalties:'Civil: up to $7,500 per incident (Consumer Protection Act); private right of action with treble damages up to $25,000',notif:'N/A — no fixed statutory deadline',resp:'N/A',cure:'None — no statutory cure right',
+   obls:['Consent for collection/sharing of consumer health data','Prohibition on geofencing around health facilities','No revenue or consumer-count threshold of any kind — broadest scope of any modeled US state law','"Consumer health data" is broader than HIPAA PHI (covers wellness, reproductive, and biometric-adjacent inferences) — the PHI data-type flag used here is a reasonable but imperfect proxy for that broader definition'],
+   logic:'AND',tests:[
+     {type:'state',label:'Conducts business in / targets Washington residents with consumer health data',req:'WA or ALL',pass:c=>c.states.includes('WA')||c.states.includes('ALL')},
+     {type:'datatype',label:'Processes consumer health data (approximated via PHI flag — actual scope is broader)',req:'PHI (proxy)',pass:c=>c.dataTypes.includes('PHI')}]},
+  {group:'US State',acronym:'GIPA',name:'Illinois Genetic Information Privacy Act',jur:'Illinois',
+   penalties:'Civil: $2,500 per negligent violation; $15,000 per intentional/reckless violation, plus attorney fees; private right of action — 100+ class actions filed since 2023',notif:'N/A — no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Prohibits employers/insurers/licensing agencies from soliciting, requiring, or purchasing genetic testing or genetic information as a condition of employment, licensure, or membership','No consumer-count or revenue threshold — applies to any employer/organization employing workers in Illinois','BIPA’s genetic-data sibling — same state, same employer-context exposure, same private-right-of-action risk profile'],
+   logic:'AND',tests:[
+     {type:'state',label:'Employs workers in / operates in Illinois',req:'IL or ALL',pass:c=>c.states.includes('IL')||c.states.includes('ALL')},
+     {type:'datatype',label:'Collects/uses genetic testing or genetic information',req:'Genetic',pass:c=>c.dataTypes.includes('Genetic')}]},
+  {group:'US Federal',acronym:'COPPA',name:"Children's Online Privacy Protection Act (as amended, effective Apr 22, 2026)",jur:'Federal (USA)',
+   penalties:'Civil: up to $53,088 per violation (FTC inflation-adjusted); calculated per affected child and duration — large-scale cases have exceeded $100M (e.g., Epic Games/Fortnite)',notif:'N/A — no breach-notification duty under COPPA itself',resp:'N/A',cure:'N/A',
+   obls:['Verifiable parental consent before collection (separate consent now required for third-party data sharing, per the Apr 2026 amendments)','Privacy policy disclosing data practices','Data minimization — no conditioning participation on excess collection','Written data retention policy + retention limits (new)','Written information security program with specified controls (new)','"Text plus" is now an authorized parental-consent verification method'],
+   logic:'OR',tests:[{type:'datatype',label:'Operates a site/service directed to, or has actual knowledge of collecting data from, children under 13',req:"Children's Data (under 13)",pass:c=>c.dataTypes.includes('ChildrenU13')}]},
+  {group:'US Federal',acronym:'DSP (Bulk Data Rule)',name:'Data Security Program — Preventing Access to U.S. Sensitive Personal Data and Government-Related Data by Countries of Concern (28 CFR Part 202 / EO 14117)',jur:'Federal (USA)',
+   penalties:'Civil: greater of $377,700 (inflation-adjusted, IEEPA) or 2x transaction value; Criminal (willful violations): up to $1,000,000 and/or 20 years imprisonment',notif:'N/A — not a breach-notification regime; requires audits, reporting, and recordkeeping for restricted transactions',resp:'N/A',cure:'N/A',
+   obls:['Prohibited transactions (data brokerage + bulk human genomic data with countries of concern/covered persons) are banned outright, not just restricted','Restricted transactions (vendor, employment, investment agreements) require a DOJ-compliant Data Security Program: CISA-aligned security requirements, annual audits, reporting','Statutory bulk thresholds by category: >100 persons (human genomic data), >1,000 (other ‘omic/biometric/precise geolocation), >10,000 (health/financial), >100,000 (covered personal identifiers) — approximated here using existing data-type flags since this tool does not yet have distinct genomic/geolocation types: Biometric/Sensitive treated at the 1,000 tier, PHI/Financial/CardData at the 10,000 tier, PII at the 100,000 tier','Separate, lower-threshold “government-related data” prong (any volume, tied to government personnel/facilities) is NOT modeled here','Full compliance required since Jul 8, 2025; DOJ enforcement actions begin Oct 6, 2026; rule has been amended multiple times through Apr 2026 — verify current text before relying on this determination'],
+   logic:'AND',tests:[
+     {type:'vendor_country',label:'Vendor, employment, or investment relationship with a country of concern (China/HK/Macau, Russia, Iran, North Korea, Cuba, Venezuela) or a covered person tied to them',req:'Country-of-concern relationship',pass:c=>(c.vendorCountries||[]).length>0},
+     {type:'datatype',label:'Processes bulk sensitive data above the category-specific DSP threshold (approximated: Biometric/Sensitive ≥ 1,000; PHI/Financial/CardData ≥ 10,000; PII ≥ 100,000 individuals)',req:'Category-dependent bulk threshold',pass:c=>{
+       const tiers={Biometric:1000,Sensitive:1000,PHI:10000,Financial:10000,CardData:10000,PII:100000};
+       const matched=c.dataTypes.filter(dt=>tiers[dt]).map(dt=>tiers[dt]);
+       if(matched.length===0)return false;
+       return c.consumers>=Math.min(...matched);
+     }}]},
+  {group:'US State',acronym:'CCPA',name:'California Consumer Privacy Act',jur:'California',
+   penalties:'Civil: $107–$799 per consumer per incident or actual damages (data-breach private action); administrative fines $2,663 per violation, $7,988 intentional (CPPA 2025 adjustment)',notif:'30 calendar days to residents after discovery (Civ. Code 1798.82 as amended by SB 446, eff. Jan 1, 2026); AG within 15 days of that notice if 500+ residents',resp:'45 days',cure:'30 days',
+   obls:['Right to know','Right to delete','Right to opt-out of sale','Privacy notice','Vendor contracts'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets California residents',req:'CA or ALL',pass:c=>c.states.includes('CA')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue ≥ $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Controls data of ≥ 100,000 CA consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'datasale',label:'≥ 50% of revenue from selling personal data',req:'50%',reqNum:50,pass:c=>c.dataSale>=50}]},
+  {group:'US State',acronym:'CPRA',name:'California Privacy Rights Act (CCPA 2.0)',jur:'California',
+   penalties:'Civil: $2,663 per violation; $7,988 intentional or involving minors (CPPA 2025 adjustment)',notif:'30 calendar days to residents after discovery (Civ. Code 1798.82 as amended by SB 446, eff. Jan 1, 2026); AG within 15 days of that notice if 500+ residents',resp:'45 days',cure:'30 days',
+   obls:['All CCPA rights +','Right to correct','Sensitive PI limits','Data minimization','Annual cyber audit'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets California residents',req:'CA or ALL',pass:c=>c.states.includes('CA')||c.states.includes('ALL')},
+     {type:'revenue',label:'Annual gross revenue ≥ $25M',req:'$25M',reqNum:25,pass:c=>c.revenue>=25},
+     {type:'consumers',label:'Buys/sells data of ≥ 100,000 CA consumers',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'datasale',label:'≥ 50% revenue from personal data sales',req:'50%',reqNum:50,pass:c=>c.dataSale>=50}]},
+  {group:'US State',acronym:'CPA',name:'Colorado Privacy Act',jur:'Colorado',
+   penalties:'Civil: up to $20,000 per violation (Colorado Consumer Protection Act)',notif:'30 days to residents after determining a breach occurred (C.R.S. 6-1-716); AG too if 500+ Coloradans',resp:'45 days',cure:'Cure right expired Jan 1, 2025 — AG may proceed directly to enforcement',
+   obls:['Consumer rights (access/correct/delete/port/opt-out)','Data minimization','DPIAs'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Colorado residents',req:'CO or ALL',pass:c=>c.states.includes('CO')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 CO consumers/year',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND derives revenue from data',req:'25,000 + data rev',pass:c=>c.consumers>=25000&&c.dataSale>0}]},
+  {group:'US State',acronym:'VCPDA',name:'Virginia Consumer Data Protection Act',jur:'Virginia',
+   penalties:'Civil: $7,500 per violation + expenses',notif:'N/A',resp:'45 days',cure:'30 days',
+   obls:['Consumer rights','DPIAs','Vendor contracts','Sensitive data opt-in'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Virginia residents',req:'VA or ALL',pass:c=>c.states.includes('VA')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 VA consumers/year',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥ 50% revenue from data',req:'25,000 + 50%',pass:c=>c.consumers>=25000&&c.dataSale>=50}]},
+  {group:'US State',acronym:'CTDPA',name:'Connecticut Data Privacy Act',jur:'Connecticut',
+   penalties:'Civil: up to $5,000 per willful violation (CUTPA)',notif:'N/A',resp:'45 days',cure:'Mandatory cure right expired Dec 31, 2024 — discretionary thereafter',
+   obls:['Consumer rights','Sensitive data opt-in','DPIAs','Data minimization'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Connecticut residents',req:'CT or ALL',pass:c=>c.states.includes('CT')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 100,000 CT consumers/year',req:'100,000',reqNum:100000,pass:c=>c.consumers>=100000},
+     {type:'consumers_ds',label:'≥ 25,000 consumers AND ≥ 25% revenue from data',req:'25,000 + 25%',pass:c=>c.consumers>=25000&&c.dataSale>=25}]},
+  {group:'US State',acronym:'DPDPA',name:'Delaware Personal Data Privacy Act',jur:'Delaware',
+   penalties:'Civil: up to $10,000 per violation',notif:'N/A',resp:'45 days',cure:'60-day cure right expired Dec 31, 2025 — discretionary thereafter',
+   obls:['Consumer rights','DPIAs','Vendor contracts','Data minimization'],
+   logic:'state_AND_threshold',tests:[
+     {type:'state',label:'Operates in / targets Delaware residents',req:'DE or ALL',pass:c=>c.states.includes('DE')||c.states.includes('ALL')},
+     {type:'consumers',label:'Controls data of ≥ 35,000 DE consumers/year',req:'35,000',reqNum:35000,pass:c=>c.consumers>=35000},
+     {type:'consumers_ds',label:'≥ 10,000 consumers AND ≥ 20% revenue from data',req:'10,000 + 20%',pass:c=>c.consumers>=10000&&c.dataSale>=20}]},
+  {group:'US State',acronym:'NYS DFS 500',name:'23 NYCRR Part 500 – DFS Cybersecurity (as amended by the 2023 Second Amendment, fully enforceable as of Apr 2026)',jur:'New York',
+   penalties:'Civil: up to $1,000 per violation under Financial Services Law §408 ($5,000 for fraud or misrepresentation); DFS may treat each affected record or day as a violation; enforcement actions scaled by the Second Amendment’s expanded violation definitions',notif:'72 hrs to DFS after determining a cybersecurity incident occurred (incl. ransomware deployment); extortion payment: notice within 24 hrs, written explanation within 30 days',resp:'N/A',cure:'N/A',
+   obls:['CISO designation + annual Certification of Material Compliance (or Acknowledgment of Noncompliance) signed by BOTH the CISO and a senior executive','Annual pen test','Bi-annual vuln scan','Universal MFA (Nov 2025 requirement) for ANY access — remote, internal, cloud, privileged, third-party — with a preference for phishing-resistant methods (WebAuthn/FIDO2)','Encryption','Vendor TPSP requirements','Class A Company tier (≥$20M NY revenue AND [≥2,000 global employees OR ≥$1B global revenue]): additional independent annual cybersecurity audit, enhanced vendor/privileged-access review, continuous monitoring'],
+   logic:'AND',tests:[
+     {type:'state',label:'Licensed / operates in New York (fin/insurance)',req:'NY or ALL',pass:c=>c.states.includes('NY')||c.states.includes('ALL')},
+     {type:'industry',label:'NYS-licensed financial services or insurance entity',req:'financial / insurance',pass:c=>['financial','insurance'].includes(c.industry)}]},
+  {group:'US State',acronym:'NY Shield',name:'NY SHIELD Act',jur:'New York',
+   penalties:'Civil: greater of $5,000 or $20 per failed notification, capped at $250,000 (GBL §899-aa); up to $5,000 per violation for safeguards failures (GBL §899-bb)',notif:'30 days to affected NY residents after discovery (Dec 2024 amendment); AG, Dept. of State, State Police and DFS notified as well',resp:'N/A',cure:'N/A',
+   obls:['Reasonable data security program','Breach notification to AG','Technical / admin / physical safeguards'],
+   logic:'AND',tests:[
+     {type:'state',label:'Owns or licenses private info of NY residents',req:'NY or ALL',pass:c=>c.states.includes('NY')||c.states.includes('ALL')},
+     {type:'datatype',label:'Holds PII / financial / health data of NY residents',req:'PII / Financial / PHI',pass:c=>c.dataTypes.some(d=>['PII','Financial','PHI'].includes(d))||c.consumers>0}]},
+  {group:'US State',acronym:'NIAC',name:'Insurance Data Security Model Law',jur:'AL,CT,DE,IN,LA,ME,MI,MS,ND,NH,OH,SC',
+   penalties:'Varies by state',notif:'72 hrs',resp:'N/A',cure:'N/A',
+   obls:['Information security program','Risk assessment','Third-party vendor oversight','Incident response plan'],
+   logic:'AND',tests:[
+     {type:'state',label:'Licensed insurer in a NAIC model-law adopting state',req:'AL/CT/DE/IN/LA/ME/MI/MS/ND/NH/OH/SC',pass:c=>c.states.some(s=>['AL','CT','DE','IN','LA','ME','MI','MS','ND','NH','OH','SC','ALL'].includes(s))},
+     {type:'industry',label:'Insurance licensee ("Licensee")',req:'insurance',pass:c=>c.industry==='insurance'}]},
+  {group:'US State',acronym:'Ohio Safe Harbor',name:'Ohio Data Protection Act (SB 220)',jur:'Ohio',
+   penalties:'N/A — affirmative legal defense, not a penalty-bearing mandate. Shown as IN SCOPE/OUT for consistency with other cards, but adoption is optional, not required.',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Adopt a recognized cybersecurity framework (NIST CSF, ISO 27001, HIPAA, PCI-DSS, FedRAMP, or similar)','Maintain reasonable conformance to the chosen framework','Update within 1 year of framework revisions'],
+   logic:'OR',tests:[{type:'state',label:'Operates in Ohio (eligible for the safe harbor if you choose to use it)',req:'OH or ALL',pass:c=>c.states.includes('OH')||c.states.includes('ALL')}]},
+  {group:'International',acronym:'GDPR',name:'General Data Protection Regulation',jur:'EU / EEA',
+   penalties:'Civil: Greater of 4% annual global revenue or €20M',notif:'72 hrs',resp:'30 days',cure:'N/A',
+   obls:['Lawful basis','DPO (where required)','DPIAs','8 data subject rights','Int\'l transfer restrictions','Vendor DPAs'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of EU/EEA residents',req:'EU',pass:c=>c.intl.includes('EU')}]},
+  {group:'International',acronym:'UK DPA',name:'UK Data Protection Act 2018 / UK GDPR (as amended by the Data (Use and Access) Act 2025)',jur:'United Kingdom',
+   penalties:'Civil: Up to £17.5M or 4% global turnover',notif:'72 hrs',resp:'30 days',cure:'N/A',
+   obls:['All GDPR equivalents','UK transfer mechanisms','ICO registration','New “recognised legitimate interests” lawful basis (national security, crime detection, safeguarding) — effective Feb 5, 2026','Reformulated international-transfer adequacy test (“not materially lower” standard, replacing the prior “essentially equivalent” test) — effective Feb 5, 2026','New “children’s higher protection matters” requirements for services accessed by children — effective Feb 5, 2026','Formal right to complain to controllers (30-day acknowledgment) + expanded ICO powers: binding assessment notices and compelled-interview notices — effective Jun 19, 2026','DSAR responses now scoped to “reasonable and proportionate” searches, with clock-pause for clarifying info'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of UK residents',req:'UK',pass:c=>c.intl.includes('UK')}]},
+  {group:'International',acronym:'PIPEDA',name:'Personal Information Protection and Electronic Documents Act',jur:'Canada (federal) — applies to commercial activity in provinces without their own substantially-similar private-sector law; does not apply to intra-provincial commercial activity in Quebec, BC, or Alberta — see those separate entries',
+   penalties:'Criminal: fines up to CAD $100,000 per offense for knowingly failing to report/record breaches or obstructing the OPC (prosecuted by Crown); the Privacy Commissioner has no order-making or administrative-fine power (Bill C-27 died Jan 2025)',notif:'ASAP (significant risk of harm)',resp:'Reasonable',cure:'N/A',
+   obls:['Consent','Purpose limitation','Data minimization','Breach reporting to OPC + affected individuals','Applies by default in all provinces except Quebec, BC, and Alberta, which have their own substantially-similar regimes (see separate entries)'],
+   logic:'OR',tests:[{type:'country',label:'Collects / uses personal info of Canadians commercially (outside Quebec/BC/Alberta, or federally-regulated activity)',req:'Canada',pass:c=>c.intl.includes('Canada')}]},
+  {group:'International',acronym:'Law 25 (Quebec)',name:'Act Respecting the Protection of Personal Information in the Private Sector (as amended by Law 25)',jur:'Quebec, Canada — displaces PIPEDA for intra-provincial commercial activity',
+   penalties:'Administrative monetary penalties: up to greater of CAD $10,000,000 or 2% of worldwide turnover; penal proceedings: up to greater of CAD $25,000,000 or 4% of worldwide turnover, may be doubled for repeat offenses — materially harsher than federal PIPEDA',notif:'Without delay if risk of serious injury',resp:'Reasonable',cure:'N/A',
+   obls:['Consent (including opt-in for sensitive data)','Privacy Impact Assessments for certain projects','Right to data portability','Cross-border transfer impact assessments','Enforced by the Commission d’accès à l’information (CAI), with 2026 amendments tightening enforcement authority'],
+   logic:'OR',tests:[{type:'country',label:'Collects / uses personal information of Quebec residents, or conducts business in Quebec',req:'CanadaQuebec',pass:c=>c.intl.includes('CanadaQuebec')}]},
+  {group:'International',acronym:'PIPA (BC)',name:'Personal Information Protection Act (British Columbia)',jur:'British Columbia, Canada — displaces PIPEDA for intra-provincial commercial activity',
+   penalties:'Up to CAD $10,000 for individuals; up to CAD $100,000 for organizations',notif:'No fixed statutory deadline — as soon as practicable',resp:'Reasonable',cure:'N/A',
+   obls:['Consent','Purpose limitation','Access and correction rights','OIPC BC has order-making power to compel compliance'],
+   logic:'OR',tests:[{type:'country',label:'Collects / uses personal information within British Columbia',req:'CanadaBC',pass:c=>c.intl.includes('CanadaBC')}]},
+  {group:'International',acronym:'PIPA (Alberta)',name:'Personal Information Protection Act (Alberta)',jur:'Alberta, Canada — displaces PIPEDA for intra-provincial commercial activity',
+   penalties:'Statutory ceiling of CAD $10,000 for individuals / CAD $100,000 for organizations, but the OIPC Alberta currently has no authority to actually impose monetary penalties directly — findings and compliance orders only; a 2026 legislative review recommended adding real fining authority, not yet enacted',notif:'No fixed statutory deadline — as soon as practicable',resp:'Reasonable',cure:'N/A',
+   obls:['Consent','Purpose limitation','Access and correction rights','Enforcement gap versus BC/Quebec: OIPC Alberta can order but not fine as of mid-2026'],
+   logic:'OR',tests:[{type:'country',label:'Collects / uses personal information within Alberta',req:'CanadaAlberta',pass:c=>c.intl.includes('CanadaAlberta')}]},
+  {group:'International',acronym:'LGPD',name:'Lei Geral de Proteção de Dados Pessoais',jur:'Brazil',
+   penalties:'Civil: Up to 2% Brazil revenue, capped at R$50M/violation',notif:'3 business days to ANPD and affected data subjects (ANPD Resolution 15/2024)',resp:'15 days',cure:'N/A',
+   obls:['Lawful basis','8 data subject rights','DPO','DPIAs','Vendor contracts'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of Brazilian residents',req:'Brazil',pass:c=>c.intl.includes('Brazil')}]},
+  {group:'International',acronym:'APPI',name:'Act on Protection of Personal Information',jur:'Japan',
+   penalties:'Civil: Up to ¥100M (~$900K)',notif:'Preliminary report to PPC promptly (~3–5 days); final report within 30 days (60 days if caused by unauthorized access)',resp:'Without delay',cure:'N/A',
+   obls:['Purpose specification','Third-party restrictions','Breach notification','Sensitive PI opt-in'],
+   logic:'OR',tests:[{type:'country',label:'Handles personal information of Japanese residents',req:'Japan',pass:c=>c.intl.includes('Japan')}]},
+  {group:'International',acronym:'PIPL',name:"Personal Information Protection Law (China)",jur:'China',
+   penalties:'Civil: Up to ¥50M or 5% annual revenue',notif:'Promptly',resp:'Yes',cure:'N/A',
+   obls:['Separate consent for sensitive PI','Data localization','DPO required','CAC cross-border approval'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal information of PRC residents',req:'China',pass:c=>c.intl.includes('China')}]},
+  {group:'International',acronym:'DSL (China)',name:'Data Security Law',jur:'China',
+   penalties:'Core/important data violations: up to RMB 50,000,000 (~$7M) or 5% of prior-year revenue for the most serious offenses; important-data-only violations: up to RMB 10,000,000; suspension of business operations, license revocation, and “untrustworthy entity” listing for serious/repeated violations',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Tiered data classification (core data / important data / general data) per national and sectoral catalogues','Risk assessments and reporting for important/core data processing','Cross-border transfer security assessment for important data','Distinct from PIPL — DSL governs data handling broadly (not just personal information) and applies even to non-personal business/industrial data','2026 amendments align DSL penalty structure more closely with PIPL and the amended CSL'],
+   logic:'OR',tests:[{type:'country',label:'Handles data (personal or non-personal) subject to PRC data security jurisdiction',req:'China',pass:c=>c.intl.includes('China')}]},
+  {group:'International',acronym:'CSL (China)',name:'Cybersecurity Law (substantially amended, effective Jan 1, 2026)',jur:'China',
+   penalties:'Up to RMB 10,000,000 for entities and RMB 1,000,000 for individuals where a violation causes “serious consequences” or “particularly serious consequences”',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Network security obligations for all network operators','Enhanced obligations for Critical Information Infrastructure Operators (CIIOs): data localization, security review for network products/services, real-name registration','Distinct from PIPL/DSL — CSL addresses network/infrastructure security specifically; the 2026 amendment refers personal-information and data-protection liability out to PIPL/DSL rather than duplicating it','Amended penalty structure effective Jan 1, 2026'],
+   logic:'OR',tests:[{type:'country',label:'Operates network infrastructure or services subject to PRC cybersecurity jurisdiction',req:'China',pass:c=>c.intl.includes('China')}]},
+  {group:'International',acronym:'PIPA',name:'Personal Information Protection Act (South Korea)',jur:'South Korea',
+   penalties:'Civil: up to 3% of relevant revenue; criminal penalties for serious violations',notif:'72 hrs',resp:'10 days',cure:'N/A',
+   obls:['Consent for collection/use','Data subject access/correction/deletion rights','Domestic representative (if large-scale)','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Targets Korean data subjects or has direct/significant impact on them',req:'SouthKorea',pass:c=>c.intl.includes('SouthKorea')}]},
+  {group:'International',acronym:'PDPA',name:'Personal Data Protection Act 2012 (Singapore)',jur:'Singapore',
+   penalties:'Civil: up to S$1M or 10% of Singapore turnover (if turnover >S$10M), whichever is higher',notif:'ASAP, within 3 days of assessment',resp:'30 days',cure:'N/A',
+   obls:['Consent for collection/use/disclosure','Data Protection Officer','Access & correction rights','Breach notification to PDPC'],
+   logic:'OR',tests:[{type:'country',label:'Collects/uses/discloses personal data of Singapore residents',req:'Singapore',pass:c=>c.intl.includes('Singapore')}]},
+  {group:'International',acronym:'Privacy Act (AU)',name:'Australian Privacy Act 1988',jur:'Australia',
+   penalties:'Civil: up to greater of AUD $50M, 3x benefit obtained, or 30% of adjusted turnover',notif:'ASAP (eligible data breach)',resp:'30 days',cure:'N/A',
+   obls:['Australian Privacy Principles (APPs) compliance','Notifiable Data Breach scheme','Privacy policy','Cross-border transfer accountability','Note: AUD $3M turnover small-business exemption currently exists, under active repeal as of 2026'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of Australian residents',req:'Australia',pass:c=>c.intl.includes('Australia')}]},
+  {group:'International',acronym:'DPDPA (India)',name:'Digital Personal Data Protection Act 2023 (DPDP Rules notified Nov 13, 2025)',jur:'India',
+   penalties:'Civil: up to ₹250 crore (~$30M) per instance — NOT yet enforceable; see phased timeline below',notif:'Without unreasonable delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent / legitimate use basis','Data Principal rights (access, correction, erasure)','DPO required if classified Significant Data Fiduciary','Breach notification to Data Protection Board','PHASED TIMELINE (do not treat as fully live today): Phase 1 (Nov 13, 2025) — only the Data Protection Board of India’s establishment is in effect; Phase 2 (Nov 13, 2026) — consent-manager provisions take effect; Phase 3 (May 13, 2027) — the substantive compliance obligations listed above (and the penalties above) become enforceable'],
+   logic:'OR',tests:[{type:'country',label:'Processes digital personal data of, or offers goods/services to, people in India (substantive obligations phase in through May 13, 2027)',req:'India',pass:c=>c.intl.includes('India')}]},
+  {group:'International',acronym:'PDPA (Thailand)',name:'Personal Data Protection Act B.E. 2562 (2019)',jur:'Thailand',
+   penalties:'Administrative: up to THB 5M; Criminal: up to 1 yr + THB 1M fine; punitive civil damages up to 2x actual damages',notif:'72 hrs',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for collection/use/disclosure','Data subject rights','DPO required if large-scale processing','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Offers goods/services to, or monitors behavior of, people in Thailand',req:'Thailand',pass:c=>c.intl.includes('Thailand')}]},
+  {group:'International',acronym:'Privacy Act (NZ)',name:'New Zealand Privacy Act 2020',jur:'New Zealand',
+   penalties:'Civil: compensation orders; up to NZD $10,000 for failure to notify a notifiable breach',notif:'As soon as practicable',resp:'20 working days',cure:'N/A',
+   obls:['13 Information Privacy Principles','Notifiable Privacy Breach reporting','Cross-border disclosure restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Carries on business in New Zealand, collecting/holding personal info',req:'New Zealand',pass:c=>c.intl.includes('NewZealand')}]},
+  {group:'International',acronym:'PPL (Israel)',name:'Privacy Protection Law & Data Security Regulations',jur:'Israel',
+   penalties:'Administrative fines under Amendment 13 (effective Aug 2025), scaled to violation severity, data volume, and database security tier',notif:'Reasonable time',resp:'N/A',cure:'N/A',
+   obls:['Database registration (where required)','Data security program by database tier (basic/medium/high)','Breach notification to Privacy Protection Authority','Data subject access rights'],
+   logic:'OR',tests:[{type:'country',label:'Owns/manages a database containing personal data of Israeli residents',req:'Israel',pass:c=>c.intl.includes('Israel')}]},
+  {group:'International',acronym:'PDPL (Bahrain)',name:'Personal Data Protection Law (Law No. 30 of 2018)',jur:'Bahrain',
+   penalties:'Criminal/administrative: BD 1,000–20,000 (individuals); doubled up to BD 40,000 for corporate offenders',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Data subject access/correction/deletion rights','Registration with PDPA where required','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data in or from Bahrain',req:'Bahrain',pass:c=>c.intl.includes('Bahrain')}]},
+  {group:'International',acronym:'PDPL (Egypt)',name:'Personal Data Protection Law (Law No. 151 of 2020)',jur:'Egypt',
+   penalties:'Criminal/civil: EGP 200,000–2,000,000 (up to EGP 5,000,000 for sensitive-data violations)',notif:'Immediately upon discovery',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for collection/processing','Data subject rights (access, correction, objection)','Data Protection Officer','Cross-border transfer license from Data Protection Center'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Egypt (extraterritorial scope)',req:'Egypt',pass:c=>c.intl.includes('Egypt')}]},
+  {group:'International',acronym:'Law 81 (Lebanon)',name:'Electronic Transactions and Personal Data Law (Law No. 81 of 2018)',jur:'Lebanon',
+   penalties:'Primarily criminal: imprisonment 3 months–2 years plus fines; enforced by Ministry of Economy and Trade — no independent data protection regulator',notif:'N/A — no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Consent for processing','Registration of certain databases','Purpose limitation'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Lebanon',req:'Lebanon',pass:c=>c.intl.includes('Lebanon')}]},
+  {group:'International',acronym:'Law 13/2016 (Qatar)',name:'Personal Data Privacy Protection Law (Law No. 13 of 2016)',jur:'Qatar (State Law — mainland)',
+   penalties:'Administrative: up to QR 1,000,000 (up to QR 5,000,000 for specified violations); no imprisonment',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Data subject access/correction rights','Cross-border transfer restrictions','Compliance officer for certain controllers'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of Qatar residents (mainland), incl. foreign-based controllers',req:'Qatar',pass:c=>c.intl.includes('Qatar')}]},
+  {group:'International',acronym:'QFC DPR (Qatar)',name:'QFC Data Protection Regulations 2021',jur:'Qatar Financial Centre (free zone — separate regime from Qatar state law)',
+   penalties:'Administrative: up to $1,500,000 (USD) per offense',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['GDPR-aligned lawful basis','Data Protection Officer','DPIAs','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Entity registered/licensed in the Qatar Financial Centre free zone',req:'QatarQFC',pass:c=>c.intl.includes('QatarQFC')}]},
+  {group:'International',acronym:'KVKK (Turkey)',name:'Law on the Protection of Personal Data No. 6698 (KVKK)',jur:'Turkey',
+   penalties:'Administrative: TRY 85,437–17,092,242 (2026 tier, varies by violation type)',notif:'72 hrs to Board, without delay to data subjects',resp:'30 days',cure:'N/A',
+   obls:['Consent / lawful basis','VERBIS registration','Data subject rights','Cross-border transfer approval'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Turkey, incl. foreign controllers targeting Turkey',req:'Turkey',pass:c=>c.intl.includes('Turkey')}]},
+  {group:'International',acronym:'PDPL (UAE Federal)',name:'Federal Decree-Law No. 45 of 2021 on Personal Data Protection',jur:'United Arab Emirates (federal — excludes DIFC/ADGM free zones)',
+   penalties:'Fines deferred to Executive Regulations; commonly cited range AED 50,000–5,000,000 pending formal schedule',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent / lawful basis','Data subject rights','Data Protection Officer (where required)','Cross-border transfer restrictions'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of UAE-based individuals (mainland), UAE or foreign controller',req:'UAE',pass:c=>c.intl.includes('UAE')}]},
+  {group:'International',acronym:'DIFC DPL (UAE)',name:'DIFC Data Protection Law No. 5 of 2020',jur:'Dubai International Financial Centre (free zone — separate from UAE federal law)',
+   penalties:'Administrative: $25,000–$100,000 (USD) per infringement, across 35 listed violations; private right of action added July 2025',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['GDPR-aligned lawful basis','Data Protection Officer','DPIAs','Cross-border transfer adequacy'],
+   logic:'OR',tests:[{type:'country',label:'Entity registered/licensed in the DIFC free zone, or "stable arrangement" processing tied to DIFC',req:'DIFC',pass:c=>c.intl.includes('DIFC')}]},
+  {group:'International',acronym:'Law 2297-VI (Ukraine)',name:'Law on Personal Data Protection (No. 2297-VI, 2010)',jur:'Ukraine',
+   penalties:'Administrative fines only, enforced by the Parliamentary Commissioner for Human Rights (Ombudsman); pre-GDPR framework — a pending reform bill (Draft Law 8153, not yet enacted) would introduce fines up to 8% of turnover',notif:'No statutory deadline under current law',resp:'Reasonable time',cure:'N/A',
+   obls:['Registration of certain databases','Consent for processing','Data subject access rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Ukraine',req:'Ukraine',pass:c=>c.intl.includes('Ukraine')}]},
+  {group:'International',acronym:'PDPA (Argentina)',name:'Personal Data Protection Law (Law No. 25,326)',jur:'Argentina',
+   penalties:'Administrative: ARS 1,000–100,000 per incident (tiered by severity, caps up to ARS 50,000,000 aggregate); criminal penalties (1 month–3 yrs) for specified offenses',notif:'N/A — no general statutory breach notification duty',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Registration with AAIP','Data subject access/rectification rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data within Argentina',req:'Argentina',pass:c=>c.intl.includes('Argentina')}]},
+  {group:'International',acronym:'Law 21.719 (Chile)',name:'Personal Data Protection Law (Law No. 21,719)',jur:'Chile',
+   penalties:'Enacted Dec 2024; enforcement and fines (5,000–20,000 UTM, or 2–4% annual revenue, tripled on recidivism) begin Dec 1, 2026',notif:'Without undue delay (once enforceable)',resp:'Reasonable time',cure:'N/A',
+   obls:['Lawful basis','Data Protection Agency registration (where required)','Data subject rights','Cross-border transfer rules'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data in Chile, or targets/monitors Chilean residents (enforceable from Dec 1, 2026)',req:'Chile',pass:c=>c.intl.includes('Chile')}]},
+  {group:'International',acronym:'Law 1581 (Colombia)',name:'Statutory Law on Data Protection (Law No. 1581 of 2012)',jur:'Colombia',
+   penalties:'Administrative: up to 2,000x monthly minimum wage (~$500K); suspension up to 6 months; permanent closure for persistent breach',notif:'N/A — no fixed statutory deadline',resp:'15 business days',cure:'N/A',
+   obls:['Consent for processing','Registration in National Database Registry','Data subject rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data within Colombia',req:'Colombia',pass:c=>c.intl.includes('Colombia')}]},
+  {group:'International',acronym:'LFPDPPP (Mexico)',name:'Federal Law on Protection of Personal Data Held by Private Parties',jur:'Mexico',
+   penalties:'Administrative: 100–320,000 UMA (~$565–$1.81M), doubled for sensitive data; criminal penalties for severe/deceitful processing',notif:'Immediately',resp:'20 business days',cure:'N/A',
+   obls:['Privacy notice','Consent for processing','ARCO rights (access, rectify, cancel, object)'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Mexico',req:'Mexico',pass:c=>c.intl.includes('Mexico')}]},
+  {group:'International',acronym:'Law 18.331 (Uruguay)',name:'Personal Data Protection Law (Law No. 18,331)',jur:'Uruguay',
+   penalties:'Administrative: fines up to 500,000 UI (~$60K–65K); database suspension up to 5 business days; judicial closure',notif:'N/A — no fixed statutory deadline',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Registration with URCDP','Data subject rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data in Uruguay, or targets Uruguayan residents (EU-adequate jurisdiction)',req:'Uruguay',pass:c=>c.intl.includes('Uruguay')}]},
+  {group:'International',acronym:'PDPA (Malaysia)',name:'Personal Data Protection Act 2010 (as amended 2024–2025)',jur:'Malaysia',
+   penalties:'Criminal: up to MYR 1,000,000 and/or 3 years imprisonment; separate fine up to MYR 250,000 for breach-notification non-compliance',notif:'Mandatory since June 1, 2025 (timeline not yet fixed in statute)',resp:'21 days',cure:'N/A',
+   obls:['Consent for processing','Data Protection Officer (mandatory)','Data subject access/correction rights','Mandatory breach notification (from Jun 2025)'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Malaysia',req:'Malaysia',pass:c=>c.intl.includes('Malaysia')}]},
+  {group:'International',acronym:'Privacy Act (Nepal)',name:'Individual Privacy Act, 2018 (2075 B.S.)',jur:'Nepal',
+   penalties:'Criminal: up to 3 years imprisonment and/or fine up to NPR 30,000; no dedicated data protection regulator',notif:'N/A — no statutory breach notification duty',resp:'N/A',cure:'N/A',
+   obls:['Consent for processing','Restrictions on sensitive personal information'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals located in Nepal',req:'Nepal',pass:c=>c.intl.includes('Nepal')}]},
+  {group:'International',acronym:'PDPL (Vietnam)',name:'Personal Data Protection Law (Law No. 91/2025/QH15)',jur:'Vietnam',
+   penalties:'In force since Jan 1, 2026, replacing Decree 13/2023; for data-trading violations, up to 10x violation revenue or VND 3 billion (~$115K), whichever is higher',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent for processing','Data Protection Impact Assessment','Cross-border transfer restrictions','Data subject rights'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Vietnam',req:'Vietnam',pass:c=>c.intl.includes('Vietnam')}]},
+  {group:'International',acronym:'DORA',name:'Digital Operational Resilience Act (Regulation (EU) 2022/2554)',jur:'EU / EEA — financial sector (20 categories of financial entities + their ICT providers)',
+   penalties:'Up to 2% of annual worldwide turnover (financial entities); up to €1,000,000 for individuals; critical ICT third-party providers up to €5,000,000 (1% of average daily worldwide turnover, per day, capped at 6 months)',notif:'Initial notification within 4 hrs of major-incident classification (max 24 hrs from awareness); intermediate + final reports follow',resp:'N/A',cure:'N/A',
+   obls:['ICT risk management framework','Incident classification & reporting to competent authority','Digital operational resilience testing (incl. threat-led penetration testing for significant entities)','Third-party ICT risk register and oversight','DORA is lex specialis over NIS2 for in-scope financial entities — see the NIS2 entry, which excludes financial/insurance to avoid double-counting','In force since Jan 17, 2025; 2026 is the first year of active supervisory enforcement','Applies regardless of size — proportionality scales requirements for microenterprises (<10 employees, <€2M turnover/balance sheet) but does not exempt them'],
+   logic:'AND',tests:[
+     {type:'country',label:'Financial entity or ICT provider operating in / serving the EU',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'industry',label:'Financial entity (bank, insurer, investment firm, payment/e-money institution, crypto-asset service provider, etc.)',req:'financial or insurance',pass:c=>['financial','insurance'].includes(c.industry)}]},
+  {group:'International',acronym:'NIS2',name:'Network and Information Security Directive 2 (EU) 2022/2555',jur:'EU / EEA — Annex I "essential" + Annex II "important" sectors',
+   penalties:'Up to €10,000,000 or 2% global turnover (essential entities); up to €7,000,000 or 1.4% global turnover (important entities); management-body personal liability for non-compliance',notif:'24 hr early warning; 72 hr incident notification; 1 month final report',resp:'N/A',cure:'N/A',
+   obls:['Risk management measures (Art. 21): supply chain security, incident handling, business continuity, encryption, access control','Governance / management-body accountability & training','Incident reporting to national CSIRT','Excludes financial entities — DORA is lex specialis for banks/insurers under DORA Recital 16 / NIS2 Recital 28, so they are scoped under the DORA entry instead','Space, postal/courier, waste management, and research-sector entities are also NIS2-covered but not yet modeled as distinct industry options here','Size test approximates the statute’s €-denominated threshold using the tool’s USD revenue field — treat as parity, not an FX-converted figure','As of March 2026 roughly two-thirds of member states have transposed NIS2; Commission proposed simplification amendments in Jan 2026','Reflects the Directive floor (€10M/2% essential, €7M/1.4% important) applied verbatim by most transposing states; Germany has transposed with materially higher penalties — see the separate NIS2 (Germany) entry — France reportedly set higher thresholds for some infringement categories but no confirmed statutory figure was found, treat as a watch item'],
+   logic:'AND',tests:[
+     {type:'country',label:'Operates in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'industry',label:'Annex I/II sector: energy, transport, health, water, digital infrastructure/ICT service management, chemical, manufacturing, food, or public administration (excludes financial/insurance — see DORA)',req:'NIS2 sector',pass:c=>['healthcare','energy','water','transportation','tech','telecom','chemical','manufacturing','foodag','government'].includes(c.industry)},
+     {type:'employees',label:'Medium+ enterprise (≥50 employees or ≥€10M turnover, treated at parity to $10M here)',reqNum:50,req:'50+ employees or €10M+ turnover',pass:c=>c.employees>=50||c.revenue>=10}]},
+  {group:'International',acronym:'NIS2 (Germany)',name:'NIS-2-Umsetzungs- und Cybersicherheitsstärkungsgesetz (NIS2UmsuCG) — German NIS2 transposition',jur:'Germany',penalties:'Up to €10,000,000 or 2% global turnover, whichever is higher, for essential entities; up to €7,000,000 or 1.4% global turnover for important entities (matches EU floor); additional personal fines on management for non-compliance of up to €500,000',notif:'24 hr early warning; 72 hr incident notification; 1 month final report (same timeline as base NIS2 Directive)',resp:'N/A',cure:'N/A',obls:['Same risk-management and incident-reporting obligations as the base NIS2 Directive (Art. 21 measures, governance accountability, CSIRT reporting)','Excludes financial entities — DORA is lex specialis, same exclusion as base NIS2 entry','BSI (Federal Office for Information Security) is the German competent authority','This entry supersedes the base NIS2 (EU/EEA) entry for German-specific penalty exposure — select both EU and Germany to see full context, but rely on this entry for the actual penalty figures applicable in Germany'],logic:'AND',tests:[{type:'country',label:'Operates in Germany',req:'Germany',pass:c=>c.intl.includes('Germany')},{type:'industry',label:'Annex I/II sector: energy, transport, health, water, digital infrastructure/ICT service management, chemical, manufacturing, food, or public administration (excludes financial/insurance — see DORA)',req:'NIS2 sector',pass:c=>['healthcare','energy','water','transportation','tech','telecom','chemical','manufacturing','foodag','government'].includes(c.industry)},{type:'employees',label:'Medium+ enterprise (≥50 employees or ≥€10M turnover, treated at parity to $10M here)',reqNum:50,req:'50+ employees or €10M+ turnover',pass:c=>c.employees>=50||c.revenue>=10}]},
+  {group:'International',acronym:'POPIA',name:'Protection of Personal Information Act',jur:'South Africa',
+   penalties:'Civil: administrative fines up to ZAR 10,000,000 (~$550,000) via infringement notices; Criminal: up to 10 years imprisonment for serious offenses (obstructing the Information Regulator, unlawful acts re: account numbers, enforcement-notice non-compliance)',notif:'As soon as reasonably possible',resp:'Reasonable time',cure:'N/A',
+   obls:['Lawful processing (8 conditions)','Information Officer registration','Data subject access/correction rights','Cross-border transfer restrictions','2026: Information Regulator has shifted to proactive compliance monitoring and industry-wide assessments, not just complaint-driven enforcement'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal information within South Africa',req:'SouthAfrica',pass:c=>c.intl.includes('SouthAfrica')}]},
+  {group:'International',acronym:'NDPA (Nigeria)',name:'Nigeria Data Protection Act 2023',jur:'Nigeria',
+   penalties:'Civil: greater of ₦10,000,000 or 2% of annual gross revenue for major violations; demonstrated enforcement includes a ₦766.2M fine against MultiChoice Nigeria and a $220M fine against Meta',notif:'72 hrs',resp:'Reasonable time',cure:'N/A',
+   obls:['Lawful basis / consent','Data Protection Officer / Compliance Officer','NDPC registration (data controllers/processors of major importance)','Data subject rights','Cross-border transfer adequacy'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals residing in Nigeria (extraterritorial)',req:'Nigeria',pass:c=>c.intl.includes('Nigeria')}]},
+  {group:'International',acronym:'DPA (Kenya)',name:'Data Protection Act, 2019',jur:'Kenya',
+   penalties:'Administrative: up to KES 5,000,000 or 1% of annual turnover for controllers (whichever is lower under current law — a pending 2025 amendment bill would flip to whichever is higher); KES 3,000,000 or 0.5% turnover for processors; criminal penalties up to KES 3,000,000 and/or 10 years imprisonment for specified offenses',notif:'72 hrs',resp:'Reasonable time',cure:'N/A',
+   obls:['ODPC registration (where required)','Consent / lawful basis','Data Protection Officer (where required)','Data subject rights','Cross-border transfer adequacy'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Kenya',req:'Kenya',pass:c=>c.intl.includes('Kenya')}]},
+  {group:'International',acronym:'nFADP',name:'Federal Act on Data Protection (revised, in force since Sep 1, 2023)',jur:'Switzerland',
+   penalties:'Criminal only (unlike GDPR-style regimes, there is no administrative fine): up to CHF 250,000, imposed on the responsible INDIVIDUAL rather than the company; no publicly reported convictions as of May 2026',notif:'As soon as possible',resp:'30 days',cure:'N/A',
+   obls:['Lawful basis / transparency','Data Protection Impact Assessments for high-risk processing','Breach notification to the FDPIC','Cross-border transfer adequacy — Switzerland is NOT in the EU/EEA, so a separate adequacy analysis is required even for otherwise GDPR-compliant companies','2025–2026 FDPIC enforcement focus: cross-border transfer compliance and breach-notification failures'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Switzerland',req:'Switzerland',pass:c=>c.intl.includes('Switzerland')}]},
+  {group:'International',acronym:'PDPL (Saudi Arabia)',name:'Personal Data Protection Law',jur:'Saudi Arabia',
+   penalties:'Administrative: up to SAR 5,000,000 (~$1.3M) per violation, doubled for repeat offenses, plus potential asset confiscation; Criminal (sensitive-data disclosure with harmful intent): up to 2 years imprisonment and/or SAR 3,000,000 fine',notif:'Without undue delay',resp:'Reasonable time',cure:'N/A',
+   obls:['Consent / lawful basis','Data subject rights','Cross-border transfer restrictions (SDAIA approval)','Compliance grace period expired Sep 14, 2024 — fully enforceable now; SDAIA had issued 48 formal enforcement decisions as of 2026'],
+   logic:'OR',tests:[{type:'country',label:'Processes personal data of individuals in Saudi Arabia (extraterritorial)',req:'SaudiArabia',pass:c=>c.intl.includes('SaudiArabia')}]},
+  {group:'International',acronym:'EU DSA',name:'Digital Services Act (content moderation / platform obligations)',jur:'EU / EEA',
+   penalties:'Up to 6% of global annual turnover (Art. 74(1)); up to 1% for incorrect or misleading information; periodic penalties up to 5% of average daily turnover',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Notice-and-action mechanisms for illegal content','Transparency reporting on content moderation and advertising','Additional obligations for Very Large Online Platforms/Search Engines (45M+ monthly EU users): systemic risk assessments, independent audits','Commission is explicitly escalating DSA/DMA enforcement in 2026 against major platforms','Approximated here via industry (tech/media/retail = platform-like business models) since the tool has no dedicated “platform/intermediary service” classification — a real business operating a hosting, search, or marketplace service in a DIFFERENT industry label would be missed by this proxy'],
+   logic:'AND',tests:[
+     {type:'country',label:'Provides an online platform/intermediary service reaching users in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'industry',label:'Platform-like business model (approximated via tech/media/retail industry)',req:'tech, media, or retail',pass:c=>['tech','media','retail'].includes(c.industry)}]},
+  {group:'International',acronym:'EU AI Act (Prohibited)',name:'Artificial Intelligence Act — Prohibited Practices (Art. 5)',jur:'EU / EEA',
+   penalties:'Up to €35,000,000 or 7% of global annual turnover — the highest tier of any regulation in this tool',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Prohibition is absolute — no compliance path, only cessation of the practice','Covers social scoring, manipulative/subliminal techniques causing harm, real-time remote biometric identification in public spaces for law enforcement, and emotion inference in workplace/education contexts','In force and enforceable since Feb 2, 2025 — the first AI Act provision to take effect'],
+   logic:'AND',tests:[
+     {type:'country',label:'AI system placed on the market or used in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'ai_role',label:'Engages in an Article 5 prohibited AI practice',req:'AIProhibited',pass:c=>(c.aiRoles||[]).includes('AIProhibited')}]},
+  {group:'International',acronym:'EU AI Act (High-Risk)',name:'Artificial Intelligence Act — High-Risk Systems (Annex III)',jur:'EU / EEA',
+   penalties:'Up to €15,000,000 or 3% of global annual turnover',notif:'Serious incidents to market surveillance authority within 15 days (2 days for widespread/critical-infrastructure incidents; 10 days if a death) — Art. 73',resp:'N/A',cure:'N/A',
+   obls:['Conformity assessment before market placement','Risk management system + technical documentation','Human oversight, accuracy, robustness, cybersecurity requirements','EU database registration','Compliance deadline DEFERRED from Aug 2, 2026 to Dec 2, 2027 under the Digital Omnibus (provisional agreement reached May 2026, Parliament/Council sign-off Jun 2026, formal publication pending as of Jul 2026) — verify current status before relying on this date'],
+   logic:'AND',tests:[
+     {type:'country',label:'AI system placed on the market or used in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'ai_role',label:'Provider or deployer of an Annex III high-risk AI system',req:'AIHighRisk',pass:c=>(c.aiRoles||[]).includes('AIHighRisk')}]},
+  {group:'International',acronym:'EU AI Act (GPAI)',name:'Artificial Intelligence Act — General-Purpose AI Models',jur:'EU / EEA',
+   penalties:'Fines, model recalls, and information-request powers activate Aug 2, 2026; underlying obligations already binding',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Technical documentation of model architecture, training, and performance','Documentation provided to downstream providers','Published training-data summary using the AI Office template','EU copyright law compliance','Obligations legally applicable since Aug 2, 2025; full AI Office enforcement powers begin Aug 2, 2026'],
+   logic:'AND',tests:[
+     {type:'country',label:'Model placed on the market or used in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'ai_role',label:'Provider of a general-purpose (foundation) AI model',req:'AIGPAI',pass:c=>(c.aiRoles||[]).includes('AIGPAI')}]},
+  {group:'International',acronym:'EU AI Act (Limited-Risk)',name:'Artificial Intelligence Act — Transparency Obligations (Art. 50)',jur:'EU / EEA',
+   penalties:'Non-compliance with transparency obligations falls under the Act’s general penalty tier (up to €15,000,000 or 3% of global turnover)',notif:'N/A',resp:'N/A',cure:'N/A',
+   obls:['Disclose AI-generated/manipulated content (deepfake labeling)','Disclose chatbot/AI interaction to users','Mark synthetic audio/video/text content as AI-generated','Applies from Aug 2, 2026'],
+   logic:'AND',tests:[
+     {type:'country',label:'AI system placed on the market or used in the EU / EEA',req:'EU',pass:c=>c.intl.includes('EU')},
+     {type:'ai_role',label:'Provider of a limited-risk AI system (chatbot, deepfake generator, emotion-recognition system outside prohibited contexts)',req:'AILimited',pass:c=>(c.aiRoles||[]).includes('AILimited')}]},
+];
+
+// ── EVAL ─────────────────────────────────────────────────────────────────────
+function evalReg(reg,co){
+  const logic=reg.logic;
+  const tested=reg.tests.map(t=>{
+    const passed=t.pass(co);
+    let compVal='—';
+    if(t.type==='revenue')compVal='$'+co.revenue+'M';
+    else if(t.type==='employees')compVal=fmtN(co.employees)+' employees';
+    else if(t.type==='consumers'||t.type==='consumers_ds')compVal=fmtN(co.consumers);
+    else if(t.type==='datasale')compVal=co.dataSale+'%';
+    else if(t.type==='industry')compVal=co.industry||'(not set)';
+    else if(t.type==='state')compVal=co.states.join(', ')||'(none)';
+    else if(t.type==='country')compVal=co.intl.join(', ')||'(none)';
+    else if(t.type==='vendor_country')compVal=(co.vendorCountries||[]).join(', ')||'(none)';
+    else if(t.type==='ai_role')compVal=(co.aiRoles||[]).join(', ')||'(none)';
+    else if(t.type==='marketing_channel')compVal=(co.marketingChannels||[]).join(', ')||'(none)';
+    else if(t.type==='datatype')compVal=co.dataTypes.join(', ')||'(none)';
+    else compVal='Yes';
+    return{...t,passed,compVal};
+  });
+  let inScope=false;
+  if(logic==='always')inScope=true;
+  else if(logic==='OR')inScope=tested.some(t=>t.passed);
+  else if(logic==='AND')inScope=tested.every(t=>t.passed);
+  else if(logic==='state_AND_threshold'){
+    const stPass=tested.find(t=>t.type==='state')?.passed??false;
+    const thPass=tested.filter(t=>t.type!=='state').some(t=>t.passed);
+    inScope=stPass&&thPass;
+  }
+  else if(logic==='state_AND_revenue_AND_threshold'){
+    const stPass=tested.find(t=>t.type==='state')?.passed??false;
+    const revPass=tested.find(t=>t.type==='revenue')?.passed??false;
+    const thPass=tested.filter(t=>t.type!=='state'&&t.type!=='revenue').some(t=>t.passed);
+    inScope=stPass&&revPass&&thPass;
+  }
+  let watch=false;
+  if(!inScope){
+    if(logic==='state_AND_threshold')watch=tested.find(t=>t.type==='state')?.passed??false;
+    if(logic==='state_AND_revenue_AND_threshold')watch=(tested.find(t=>t.type==='state')?.passed??false)&&(tested.find(t=>t.type==='revenue')?.passed??false);
+    if(!watch) tested.forEach(t=>{
+      if(t.reqNum&&!t.passed){
+        if(t.type==='revenue'&&co.revenue>=t.reqNum*0.5)watch=true;
+        if(t.type==='employees'&&co.employees>=t.reqNum*0.5)watch=true;
+        if((t.type==='consumers'||t.type==='consumers_ds')&&co.consumers>=t.reqNum*0.5)watch=true;
+      }
+    });
+  }
+  return{inScope,watch:!inScope&&watch,tests:tested};
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function runAnalysis(){
+  const name=document.getElementById('f-name').value.trim();
+  const revenue=parseFloat(document.getElementById('f-rev').value)||0;
+  const dataSale=parseFloat(document.getElementById('f-datasale').value)||0;
+  const consumers=parseInt(document.getElementById('f-consumers').value)||0;
+  const employees=parseInt(document.getElementById('f-employees').value)||0;
+  const industry=document.getElementById('f-industry').value;
+  const states=sel('f-states'),intl=sel('f-intl'),dataTypes=sel('f-data'),vendorCountries=sel('f-vendor'),aiRoles=sel('f-airole'),marketingChannels=sel('f-marketing');
+  if(!name){alert('Please enter a company name.');return;}
+  const co={name,revenue,dataSale,consumers,employees,industry,states,intl,dataTypes,vendorCountries,aiRoles,marketingChannels};
+  const ev=REGS.map(r=>({reg:r,...evalReg(r,co)}));
+  const inS=ev.filter(e=>e.inScope),wa=ev.filter(e=>e.watch),out=ev.filter(e=>!e.inScope&&!e.watch);
+
+  const coCard=`<div class="co-card">
+    <div class="co-name">${name}<span style="font-size:13px;font-weight:400;color:var(--slate);margin-left:10px">${industry||''}</span></div>
+    <div class="co-stats">
+      <div class="co-stat"><div class="v">${revenue?'$'+revenue+'M':'—'}</div><div class="l">Revenue</div></div>
+      <div class="co-stat"><div class="v">${employees?fmtN(employees):'—'}</div><div class="l">Employees</div></div>
+      <div class="co-stat"><div class="v">${consumers?fmtN(consumers):'—'}</div><div class="l">Consumers</div></div>
+      <div class="co-stat"><div class="v">${dataSale?dataSale+'%':'—'}</div><div class="l">Data Sale %</div></div>
+      <div class="co-stat"><div class="v">${states.join(', ')||'—'}</div><div class="l">US States</div></div>
+      <div class="co-stat"><div class="v">${intl.join(', ')||'—'}</div><div class="l">Intl</div></div>
+    </div></div>`;
+
+  const sumBar=`<div class="sum-bar">
+    <div class="sum-box s-total"><div class="n">${REGS.length}</div><div class="l">Checked</div></div>
+    <div class="sum-box s-in"><div class="n">${inS.length}</div><div class="l">In Scope ✓</div></div>
+    <div class="sum-box s-watch"><div class="n">${wa.length}</div><div class="l">Watch ⚠</div></div>
+    <div class="sum-box s-out"><div class="n">${out.length}</div><div class="l">Not in Scope</div></div>
+  </div>
+    <button class="pdf-btn" onclick="downloadPdfReport()">📄 Download PDF Report</button>
+  </div>`;
+
+  let cards='';
+  ['US Federal','US State','International'].forEach(grp=>{
+    const gAll=[...inS,...wa,...out].filter(e=>e.reg.group===grp);
+    if(!gAll.length)return;
+    const gi=gAll.filter(e=>e.inScope).length,gw=gAll.filter(e=>e.watch).length,go=gAll.filter(e=>!e.inScope&&!e.watch).length;
+    cards+=`<div class="grp-hdr">${grp==='US Federal'?'🇺🇸':grp==='US State'?'🏛':'🌍'} ${grp}<span class="grp-counts">${gi} in scope · ${gw} watch · ${go} out</span></div>`;
+    [...inS,...wa,...out].filter(e=>e.reg.group===grp).forEach(e=>{
+      const pill=e.inScope?'<span class="pill p-in">✓ IN SCOPE</span>':e.watch?'<span class="pill p-watch">⚠ WATCH</span>':'<span class="pill p-out">✗ OUT</span>';
+      const rows=e.tests.map(t=>`<tr><td>${t.label}</td><td>${t.req||'—'}</td><td class="${t.passed?'t-pass':'t-fail'}">${t.compVal}</td><td style="text-align:center">${t.passed?'✅':'❌'}</td></tr>`).join('');
+      const chips=(e.reg.obls||[]).map(o=>`<span class="chip">${o}</span>`).join('');
+      cards+=`<div class="rc ${e.inScope?'in':e.watch?'watch':'out'} ${e.inScope?'open':''}">
+        <div class="rc-head" onclick="this.parentElement.classList.toggle('open')">
+          <div class="rc-acr">${e.reg.acronym}</div>
+          <div class="rc-info"><div class="rc-name">${e.reg.name}</div><div class="rc-jur">${e.reg.jur}</div></div>
+          ${pill}<div class="rc-toggle">▼</div>
+        </div>
+        <div class="rc-body">
+          <table class="tt"><thead><tr><th>Threshold / Trigger</th><th>Required</th><th>Company Value</th><th>Pass?</th></tr></thead><tbody>${rows}</tbody></table>
+          <div class="sla-grid">
+            <div class="sla-item"><div class="sl">⏱ Breach Notification</div>${e.reg.notif||'—'}</div>
+            <div class="sla-item"><div class="sl">📋 Consumer Response</div>${e.reg.resp||'—'}</div>
+            <div class="sla-item"><div class="sl">🔧 Cure Period</div>${e.reg.cure||'—'}</div>
+          </div>
+          <div style="font-size:11px;color:#b91c1c;font-weight:700;margin-bottom:5px">⚠ ${e.reg.penalties}</div>
+          <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:4px">Key Obligations:</div>
+          <div class="chips">${chips}</div>
+        </div></div>`;
+    });
+  });
+
+  lastAnalysis={co,ev,inS,wa,out};
+  document.getElementById('results-panel').innerHTML=coCard+sumBar+cards;
+}
+
+function downloadPdfReport(){
+  if(!lastAnalysis){alert('Run an analysis first.');return;}
+  if(!window.jspdf){alert('PDF library did not load — check your connection and try again.');return;}
+  const {co,inS,wa,out}=lastAnalysis;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'pt',format:'letter'});
+  const pageW=doc.internal.pageSize.getWidth();
+  const marginX=40;
+  let y=48;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(15,23,60);
+  doc.text('RegQ — RiskQ Regulatory Intelligence',marginX,y);
+  y+=20;
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(90,98,120);
+  doc.text('Regulatory Scope Report',marginX,y);
+  y+=14;
+  doc.setFontSize(9);
+  doc.text('Generated '+new Date().toISOString().slice(0,10)+' · '+REGS.length+' regulations checked',marginX,y);
+  y+=22;
+
+  doc.setFillColor(240,244,255);
+  doc.rect(marginX,y-10,pageW-2*marginX,42,'F');
+  doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(60,68,90);
+  const disclaimer='This report provides regulatory intelligence and decision support based on the company inputs provided at the time of generation. It is not legal, compliance, audit, or regulatory advice, and it does not constitute a determination that any law does or does not apply. Verify applicability with qualified counsel before relying on this output.';
+  const discLines=doc.splitTextToSize(disclaimer,pageW-2*marginX-16);
+  doc.text(discLines,marginX+8,y+4);
+  y+=42+discLines.length*2;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(15,23,60);
+  doc.text('Company Profile',marginX,y);
+  y+=16;
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(30,38,60);
+  const profileRows=[
+    ['Company',co.name||'—'],
+    ['Industry',co.industry||'—'],
+    ['Revenue',co.revenue?('$'+co.revenue+'M'):'—'],
+    ['Employees',co.employees?fmtN(co.employees):'—'],
+    ['Consumers',co.consumers?fmtN(co.consumers):'—'],
+    ['Data Sale %',co.dataSale?co.dataSale+'%':'—'],
+    ['US States',co.states&&co.states.length?co.states.join(', '):'—'],
+    ['International Markets',co.intl&&co.intl.length?co.intl.join(', '):'—'],
+    ['Data Types',co.dataTypes&&co.dataTypes.length?co.dataTypes.join(', '):'—'],
+    ['Vendor/Investor Countries of Concern',co.vendorCountries&&co.vendorCountries.length?co.vendorCountries.join(', '):'—'],
+    ['AI System Roles',co.aiRoles&&co.aiRoles.length?co.aiRoles.join(', '):'—'],
+    ['Marketing Channels',co.marketingChannels&&co.marketingChannels.length?co.marketingChannels.join(', '):'—']
+  ];
+  doc.autoTable({
+    startY:y,margin:{left:marginX,right:marginX},
+    body:profileRows,theme:'plain',
+    styles:{fontSize:9,cellPadding:2},
+    columnStyles:{0:{fontStyle:'bold',cellWidth:150,textColor:[90,98,120]},1:{cellWidth:pageW-2*marginX-150}}
+  });
+  y=doc.lastAutoTable.finalY+18;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(15,23,60);
+  doc.text('Summary',marginX,y);
+  y+=6;
+  doc.autoTable({
+    startY:y+8,margin:{left:marginX,right:marginX},
+    head:[['Checked','In Scope','Watch','Out of Scope']],
+    body:[[String(REGS.length),String(inS.length),String(wa.length),String(out.length)]],
+    theme:'grid',styles:{fontSize:9.5,halign:'center',cellPadding:5},
+    headStyles:{fillColor:[15,23,60],textColor:255}
+  });
+  y=doc.lastAutoTable.finalY+20;
+
+  function regTable(title,list,color){
+    if(!list.length)return;
+    if(y>doc.internal.pageSize.getHeight()-100){doc.addPage();y=48;}
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(color[0],color[1],color[2]);
+    doc.text(title+' ('+list.length+')',marginX,y);
+    y+=8;
+    const body=list.map(e=>{
+      const trigger=e.tests.filter(t=>t.passed).map(t=>t.label).join('; ')||e.tests.map(t=>t.label).join('; ');
+      return[e.reg.acronym,e.reg.jur,e.reg.penalties,trigger];
+    });
+    doc.autoTable({
+      startY:y+6,margin:{left:marginX,right:marginX},
+      head:[['Reg','Jurisdiction','Penalties','Trigger']],
+      body,theme:'striped',styles:{fontSize:7.5,cellPadding:4,overflow:'linebreak'},
+      headStyles:{fillColor:color,textColor:255,fontSize:8},
+      columnStyles:{0:{cellWidth:60,fontStyle:'bold'},1:{cellWidth:110},2:{cellWidth:170},3:{cellWidth:pageW-2*marginX-340}}
+    });
+    y=doc.lastAutoTable.finalY+20;
+  }
+
+  regTable('In Scope',inS,[21,128,61]);
+  regTable('Watch / Near-Miss',wa,[180,120,10]);
+
+  if(out.length){
+    if(y>doc.internal.pageSize.getHeight()-80){doc.addPage();y=48;}
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(120,120,130);
+    doc.text('Not in Scope ('+out.length+')',marginX,y);
+    y+=14;
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,105,120);
+    const outLine=doc.splitTextToSize(out.map(e=>e.reg.acronym).join(', '),pageW-2*marginX);
+    doc.text(outLine,marginX,y);
+  }
+
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,145,160);
+    doc.text('RegQ by RiskQ — decision support, not legal advice',marginX,doc.internal.pageSize.getHeight()-20);
+    doc.text('Page '+i+' of '+pageCount,pageW-marginX,doc.internal.pageSize.getHeight()-20,{align:'right'});
+  }
+
+  const safeName=(co.name||'Company').replace(/[^a-z0-9]/gi,'_');
+  doc.save('RegQ_Regulatory_Scope_'+safeName+'.pdf');
+}
+
+function clearAll(){
+  ['f-name','f-rev','f-datasale','f-consumers'].forEach(id=>document.getElementById(id).value='');
+  ['f-industry','f-states','f-intl','f-data'].forEach(id=>[...document.getElementById(id).options].forEach(o=>o.selected=false));
+  clearAutoFill();
+  document.getElementById('results-panel').innerHTML=`<div class="empty"><div class="ico">⚖️</div><p><strong>Enter a company name and click Auto-Lookup</strong></p></div>`;
+}
+</script>
+</body>
+</html>
