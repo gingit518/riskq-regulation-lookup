@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>RiskQ Regulatory Intelligence</title>
+<title>RegQ — RiskQ Regulatory Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -140,18 +140,18 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
 
 <div class="hdr">
   <div>
-    <div class="hdr-logo">RISK<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence</span></div>
-    <div class="hdr-sub">Enter a company name — auto-lookup pulls revenue, industry &amp; geography, then checks 92 global regulations</div>
+    <div class="hdr-logo">REG<em>Q</em> &nbsp;·&nbsp; <span style="font-weight:400;font-size:16px">Regulatory Intelligence by RiskQ</span></div>
+    <div class="hdr-sub">Fill in your company profile — RegQ checks it against 92 global regulations</div>
   </div>
-  <div class="hdr-right">RiskQ Regulatory Intelligence</div>
+  <div class="hdr-right">RegQ by RiskQ</div>
 </div>
 
 <!-- API KEY SETUP BANNER — hidden once key is saved -->
 <div class="key-banner" id="key-banner">
-  ⚠ Enter your Lookup Secret Key to enable Auto-Lookup:
+  🔑 Have a RiskQ access key? Enter it to turn on Auto-Lookup — or fill in the profile manually below.
   <input type="password" id="key-input" placeholder="Paste your LOOKUP_SECRET here"/>
   <button class="kb-save" onclick="saveKey()">Save</button>
-  <span style="opacity:.7">This is stored only in your browser session.</span>
+  <span style="opacity:.7">Stored only in this browser tab. Want a guided demo? <a href="mailto:ariel@risk-q.com?subject=RegQ%20demo" style="color:inherit">ariel@risk-q.com</a></span>
 </div>
 
 <div class="layout">
@@ -317,8 +317,8 @@ body{font-family:var(--font-b);background:#f0f4ff;color:var(--navy);font-size:13
   <div class="rp" id="results-panel">
     <div class="empty">
       <div class="ico">⚖️</div>
-      <p><strong>Enter a company name and click Auto-Lookup</strong><br>to pull revenue, industry &amp; geography automatically.</p>
-      <p style="font-size:12px;color:var(--gray);max-width:320px;margin-top:6px">Then click Analyze to see which regulations apply and exactly which thresholds trigger them.</p>
+      <p><strong>Fill in your company profile and click Analyze</strong><br>Have an access key? Auto-Lookup fills revenue, industry &amp; geography for you.</p>
+      <p style="font-size:12px;color:var(--gray);max-width:320px;margin-top:6px">RegQ identifies the regulations likely in scope and the thresholds that trigger them. Decision support, not legal advice.</p>
     </div>
   </div>
 </div>
@@ -423,7 +423,7 @@ async function autoLookup(){
   const name = document.getElementById('f-name').value.trim();
   if(!name){ alert('Enter a company name first.'); return; }
   if(!LOOKUP_SECRET){
-    setStatus('Enter your Lookup Secret Key in the banner above first.','err');
+    setStatus('Auto-Lookup needs a RiskQ access key — enter it in the banner above, or fill in the profile manually.','err');
     return;
   }
   const btn = document.getElementById('btn-lookup');
@@ -441,6 +441,14 @@ async function autoLookup(){
       body: JSON.stringify({ company_name: name })
     });
 
+    if(resp.status === 401){
+      // Stored key is wrong or stale: clear it and re-show the banner so a new one can be entered
+      LOOKUP_SECRET = '';
+      try{ sessionStorage.removeItem('rq_lookup_secret'); }catch(e){}
+      document.getElementById('key-banner').classList.remove('hidden');
+      document.getElementById('key-input').value = '';
+      throw new Error('Access key not accepted — re-enter it in the banner above, or fill in the profile manually.');
+    }
     if(!resp.ok){
       const err = await resp.json().catch(()=>({error: resp.statusText}));
       throw new Error(err.error || resp.statusText);
@@ -1089,7 +1097,7 @@ function downloadPdfReport(){
   let y=48;
 
   doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(15,23,60);
-  doc.text('RiskQ Regulatory Intelligence',marginX,y);
+  doc.text('RegQ — RiskQ Regulatory Intelligence',marginX,y);
   y+=20;
   doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(90,98,120);
   doc.text('Regulatory Scope Report',marginX,y);
@@ -1181,12 +1189,12 @@ function downloadPdfReport(){
   for(let i=1;i<=pageCount;i++){
     doc.setPage(i);
     doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,145,160);
-    doc.text('RiskQ Regulatory Intelligence — decision support, not legal advice',marginX,doc.internal.pageSize.getHeight()-20);
+    doc.text('RegQ by RiskQ — decision support, not legal advice',marginX,doc.internal.pageSize.getHeight()-20);
     doc.text('Page '+i+' of '+pageCount,pageW-marginX,doc.internal.pageSize.getHeight()-20,{align:'right'});
   }
 
   const safeName=(co.name||'Company').replace(/[^a-z0-9]/gi,'_');
-  doc.save('RiskQ_Regulatory_Scope_'+safeName+'.pdf');
+  doc.save('RegQ_Regulatory_Scope_'+safeName+'.pdf');
 }
 
 function clearAll(){
