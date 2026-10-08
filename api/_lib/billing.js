@@ -24,7 +24,19 @@ export async function recordTerms(email, ipH, context) {
     const c = await findOrCreateCustomer(email);
     await stripe().customers.update(c.id, { metadata: {
       regq_terms_version: TERMS_VERSION, regq_terms_accepted_at: at, regq_terms_ip_hash: ipH, regq_terms_context: context } });
-  } catch (e) { console.error('recordTerms stripe update failed', e.message); }
+    return c;
+  } catch (e) { console.error('recordTerms stripe update failed', e.message); return null; }
+}
+
+// Customer to use for the billing portal: the one holding a RegQ subscription, else any.
+export async function billingCustomer(email) {
+  const s = stripe();
+  const custs = await s.customers.list({ email, limit: 10 });
+  for (const c of custs.data) {
+    const subs = await s.subscriptions.list({ customer: c.id, status: 'all', limit: 100 });
+    if (subs.data.some(x => x.metadata?.plan)) return c;
+  }
+  return custs.data[0] || s.customers.create({ email });
 }
 
 async function activeSubscriptions(email) {

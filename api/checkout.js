@@ -1,6 +1,6 @@
 // POST {product, interval?, email, company?, termsAccepted, termsVersion} -> {url} (Stripe Checkout)
 import { only, fail, normEmail, validEmail, normCompany, appUrl, ipHash, sessionFrom, PRICES, TERMS_VERSION } from './_lib/core.js';
-import { stripe, recordTerms } from './_lib/billing.js';
+import { stripe, recordTerms, findOrCreateCustomer } from './_lib/billing.js';
 
 export default async function handler(req, res) {
   if (!only(req, res, 'POST')) return;
@@ -17,12 +17,13 @@ export default async function handler(req, res) {
     const needsCompany = P.mode === 'payment' || P.company;
     if (needsCompany && !normCompany(company)) return res.status(400).json({ error: 'Enter the company name first.' });
 
-    await recordTerms(email, ipHash(req), 'checkout:' + product);
+    // Reuse one Stripe customer per email so Terms record, payments and subscriptions stay together.
+    const cust = (await recordTerms(email, ipHash(req), 'checkout:' + product)) || (await findOrCreateCustomer(email));
     const base = appUrl(req);
     const meta = { product, terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString(), ip_hash: ipHash(req) };
     const params = {
       mode: P.mode,
-      customer_email: email,
+      customer: cust.id,
       success_url: `${base}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/?checkout=cancel`,
       allow_promotion_codes: true,
@@ -31,7 +32,6 @@ export default async function handler(req, res) {
     };
     if (process.env.STRIPE_TOS_CONSENT === 'on') params.consent_collection = { terms_of_service: 'required' };
     if (P.mode === 'payment') {
-      params.customer_creation = 'always';
       params.line_items = [{ quantity: 1, price_data: { currency: 'usd', unit_amount: P.amount, product_data: { name: P.name, description: 'For: ' + company } } }];
     } else if (P.company) {
       params.line_items = [{ quantity: 1, price_data: { currency: 'usd', unit_amount: P.year, recurring: { interval: 'year' },
