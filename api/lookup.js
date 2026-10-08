@@ -1,4 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { sessionFrom, isInternal } from './_lib/core.js';
+import { entitlement } from './_lib/billing.js';
 
 export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -9,15 +11,19 @@ export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Simple secret key auth
-  const clientKey = req.headers['x-api-key'];
-  if (!clientKey || clientKey !== process.env.LOOKUP_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized — x-api-key header required' });
+  // Access: internal team key, or a signed-in user with an active plan/pass/CIU access
+  if (!isInternal(req)) {
+    const s = sessionFrom(req);
+    if (!s) return res.status(401).json({ error: 'signed_out' });
+    try {
+      const ent = await entitlement(s.email);
+      if (!(ent.ciu || ent.sub || ent.passes.length)) return res.status(402).json({ error: 'payment_required' });
+    } catch (e) { console.error(e); return res.status(500).json({ error: 'Could not verify your plan. Try again.' }); }
   }
 
   const { company_name } = req.body || {};
